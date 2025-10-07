@@ -9,10 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "airtable": "^0.12.2",
     "next": "15.5.4",
     "next-intl": "^4.3.9",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "swr": "^2.3.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

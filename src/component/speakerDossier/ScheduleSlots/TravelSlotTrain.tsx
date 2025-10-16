@@ -3,11 +3,11 @@ import { TrainFront } from "lucide-react";
 import { useTranslations, useFormatter } from "next-intl";
 
 type TrainProps = {
-  origin: string;
-  destination: string;
-  departureDate: string;
-  arrivalDate: string;
-  trainNr: string;
+  origin?: string;
+  destination?: string;
+  departureDate?: string;
+  arrivalDate?: string;
+  trainNr?: string;
 };
 
 export default function TravelSlotTrain({

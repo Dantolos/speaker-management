@@ -83,17 +83,17 @@ export interface Speaker {
   }>;
   "Backstage Timeslot": string[];
   Backstage: Array<{
-    id: number;
+    id: string;
     Title: string;
     Type: string;
     Startdate: string;
     Enddate: string;
     Notes?: string;
     Description?: string;
-    "Confirmed Contributions": string[];
+    "Confirmed Contributions"?: string[];
     Duration: number;
-    Event: string[];
-    Person: string[];
+    Event?: string[];
+    Person?: string[];
   }>;
 }
 

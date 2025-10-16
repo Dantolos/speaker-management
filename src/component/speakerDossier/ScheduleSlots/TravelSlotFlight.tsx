@@ -3,13 +3,13 @@ import { useTranslations, useFormatter } from "next-intl";
 import { PlaneLanding, PlaneTakeoff } from "lucide-react";
 
 type FlightProps = {
-  origin: string;
-  destination: string;
-  flightNr1: string;
+  origin?: string;
+  destination?: string;
+  flightNr1?: string;
   via?: string | undefined;
   flightNr2?: string | undefined;
   departureDate?: string;
-  arrivalDate: string;
+  arrivalDate?: string;
 };
 
 export default function TravelSlotFlight({

@@ -4,41 +4,42 @@ import TravelSlot from "./ScheduleSlots/TravelSlot";
 import TransferSlot from "./ScheduleSlots/TransferSlot";
 import SessionSlot from "./ScheduleSlots/SessionSlot";
 import BackstageSlot from "./ScheduleSlots/BackstageSlot";
+import type { DeepPartialScheduleItemType } from "@/types/schedule";
 
-type ScheduleSlotProps = {
-  starttime: string | null;
-  duration?: string | null;
-  endtime?: string | null;
-  type: string;
-  title?: string;
-  subtitle?: string | null;
-  description?: React.ReactNode | undefined;
-  scheduleData?: object | null;
+type ScheduleSlotProts = {
+  start: string | undefined;
+  Duration?: string | number | undefined;
+  end: string | undefined;
+  Type?: string | undefined;
+  Title?: string | undefined;
+  scheduleData: DeepPartialScheduleItemType;
 };
 
 export default function ScheduleSlot({
-  starttime,
-  duration,
-  endtime,
-  type,
-  title,
-  subtitle,
-  description,
+  start,
+  Duration,
+  end,
+  Type,
+  Title,
   scheduleData,
-}: ScheduleSlotProps) {
+}: ScheduleSlotProts) {
   const format = useFormatter();
 
-  const time_start = starttime ? new Date(starttime) : undefined;
-  let time_end = endtime ? new Date(endtime) : undefined;
-  if (duration) {
-    time_end = new Date(starttime + duration * 60000);
+  const time_start = start ? new Date(start) : undefined;
+  let time_end = end ? new Date(end) : undefined;
+  if (Duration !== undefined && start) {
+    const durationMinutes =
+      typeof Duration === "string" ? Number(Duration) : Duration;
+    if (!isNaN(durationMinutes)) {
+      time_end = new Date(new Date(start).getTime() + durationMinutes * 60000);
+    }
   }
 
   return (
     <div className="p-4 bg-gray-100 gap-4 flex items-stretch rounded-2xl min-h-[80px] break-inside-avoid">
       <div className="w-[100px]   flex flex-col justify-between self-stretch relative pl-3">
         <div className="absolute top-0 border-l-2 h-[calc(100%-22px)]  mt-[10px] -ml-3"></div>
-        {starttime && (
+        {time_start && (
           <div className="relative">
             <div className="rounded-full h-[8px] w-[8px]  bg-gray-900 absolute -left-[15px] top-[8px]"></div>
             {format.dateTime(time_start, {
@@ -47,7 +48,7 @@ export default function ScheduleSlot({
             })}
           </div>
         )}
-        {endtime && (
+        {time_end && (
           <div className="absolute bottom-0">
             <div className="rounded-full h-[8px] w-[8px]  bg-gray-900 absolute -left-[15px] top-[7px]"></div>
             {format.dateTime(time_end, {
@@ -58,15 +59,17 @@ export default function ScheduleSlot({
         )}
       </div>
       <div className="w-full border-l-2 border-gray-200 pl-4">
-        {subtitle && <h6>{subtitle}</h6>}
-        <h4 className="font-bold text-xl">{title}</h4>
+        {scheduleData["Session-Untertitel"] && (
+          <h6>{scheduleData["Session-Untertitel"]}</h6>
+        )}
+        <h4 className="font-bold text-xl">{Title}</h4>
         {(() => {
-          switch (type) {
+          switch (Type) {
             case "session":
               return (
                 <SessionSlot
                   room={scheduleData["Room"]}
-                  duration={scheduleData["Dauer in Minuten"]}
+                  duration={scheduleData.Duration}
                   language={scheduleData["Sessionsprache"]}
                 />
               );
@@ -84,7 +87,7 @@ export default function ScheduleSlot({
               return (
                 <TravelSlot
                   slotData={scheduleData}
-                  type={scheduleData.Reisetyp}
+                  Type={scheduleData.Reisetyp}
                 />
               );
             case "backstage":

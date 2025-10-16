@@ -1,10 +1,11 @@
 import type { DeepPartialScheduleType } from "@/types/schedule";
+import type { DeepPartialSpeaker } from "@/types/speaker";
 
 export default async function programDataMapping(
-  rawSpeakerData: object,
+  rawSpeakerData: DeepPartialSpeaker,
 ): Promise<DeepPartialScheduleType> {
   // console.log(rawSpeakerData);
-  const keyMap = {
+  const keyMap: { [key: string]: string } = {
     "Session Start Time": "start", // Sessions
     "Session End Time": "end",
     Abreisezeit: "start", // Reisen
@@ -13,15 +14,19 @@ export default async function programDataMapping(
     "Drop Off Time": "end",
     Startdate: "start", // Backstage Slots
     Enddate: "end",
+    "Dauer in Minuten": "Duration",
   };
 
-  let ProgrammData = [];
+  let ProgrammData: DeepPartialScheduleType = [];
 
   if (rawSpeakerData.Sessions) {
-    const sessions = rawSpeakerData.Sessions.map((obj) => ({
-      ...obj,
-      programtype: "session",
-    }));
+    const sessions = rawSpeakerData.Sessions.map(
+      (obj) =>
+        ({
+          ...obj,
+          programtype: "session",
+        }) as DeepPartialScheduleType[number],
+    );
     ProgrammData = ProgrammData.concat(sessions);
   }
 
@@ -34,38 +39,42 @@ export default async function programDataMapping(
   }
 
   if (rawSpeakerData.Transfers) {
-    const transfers = rawSpeakerData.Transfers.map((obj) => ({
-      ...obj,
-      programtype: "transfer",
-    }));
+    const transfers = rawSpeakerData.Transfers.map(
+      (obj) =>
+        ({
+          ...obj,
+          programtype: "transfer",
+        }) as DeepPartialScheduleType[number],
+    );
     ProgrammData = ProgrammData.concat(transfers);
   }
 
   if (rawSpeakerData.Backstage) {
-    const backstageSlots = rawSpeakerData.Backstage.map((obj) => ({
-      ...obj,
-      programtype: "backstage",
-    }));
+    const backstageSlots = rawSpeakerData.Backstage.map(
+      (obj) =>
+        ({
+          ...obj,
+          programtype: "backstage",
+        }) as DeepPartialScheduleType[number],
+    );
     ProgrammData = ProgrammData.concat(backstageSlots);
   }
 
   // Rename keys according to keyMap on the combined ProgrammData array
   ProgrammData = ProgrammData.map((obj) => {
-    return Object.keys(obj).reduce((acc, key) => {
+    return Object.keys(obj).reduce<Record<string, unknown>>((acc, key) => {
       const newKey = keyMap[key] || key;
-      acc[newKey] = obj[key];
+      acc[newKey] = (obj as Record<string, unknown>)[key];
       return acc;
     }, {});
   });
 
   // Sort by the Startdate
   ProgrammData = ProgrammData.sort((a, b) => {
-    const aDate = new Date(a.start || a.end);
-    const bDate = new Date(b.start || b.end);
-    return aDate - bDate;
+    const aDate = new Date(a.start ?? a.end ?? "");
+    const bDate = new Date(b.start ?? b.end ?? "");
+    return aDate.getTime() - bDate.getTime();
   });
-
-  console.log(ProgrammData);
 
   return ProgrammData;
 }

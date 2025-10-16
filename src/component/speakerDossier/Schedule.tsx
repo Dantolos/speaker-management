@@ -1,22 +1,25 @@
 "use client";
 import React from "react";
 import { useFormatter } from "next-intl";
-import ScheduleSlot from "./ScheduleSlot"; // or wherever your component is
+import ScheduleSlot from "./ScheduleSlot";
+import type { DeepPartialScheduleType } from "@/types/schedule";
 
 type ScheduleProps = {
-  ProgramData: Array;
+  ProgramData: DeepPartialScheduleType;
 };
 
 export default function Schedule({ ProgramData }: ScheduleProps) {
   const format = useFormatter();
-  let lastDate = null;
+  let lastDate: string | null = null;
 
   return (
     <>
       {ProgramData.map((slot, index) => {
-        const slotDate = slot.start
-          ? new Date(slot.start).toDateString()
-          : new Date(slot.end).toDateString();
+        const dateStr = slot.start ?? slot.end;
+
+        if (!dateStr) return null; // skip if both missing
+
+        const slotDate = new Date(dateStr).toDateString();
         const showDateHeader = slotDate !== lastDate;
         lastDate = slotDate;
 
@@ -34,13 +37,10 @@ export default function Schedule({ ProgramData }: ScheduleProps) {
             )}
 
             <ScheduleSlot
-              starttime={slot.start}
-              endtime={slot.end}
-              type={slot.programtype}
+              start={slot.start}
+              end={slot.end}
+              Type={slot.programtype}
               scheduleData={slot}
-              // subtitle={t("schedule-arrival")}
-              // title={t(arrival.Reisetyp)} // Gemapt mit "Flugzeug": Flug / Flight
-              // description={""}
             />
           </React.Fragment>
         );

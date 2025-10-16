@@ -3,10 +3,10 @@ import { useTranslations, useFormatter } from "next-intl";
 
 type TransferProps = {
   note?: string;
-  pickUpTime: string;
-  pickupAddress: string;
-  dropoffTime: string;
-  dropoffAddress: string;
+  pickUpTime?: string;
+  pickupAddress?: string | undefined;
+  dropoffTime?: string;
+  dropoffAddress?: string | undefined;
 };
 
 export default function TransferSlot({

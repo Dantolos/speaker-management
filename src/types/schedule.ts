@@ -14,8 +14,8 @@ export interface ScheduleItem {
   "Flugnummer (2. Flug)"?: string;
   "Flug Confirmation No"?: string;
   Bemerkung?: string;
-  "Adresse (from Drop Off)"?: string[];
-  "Adresse (from Pick Up)"?: string[];
+  "Adresse (from Drop Off)"?: string;
+  "Adresse (from Pick Up)"?: string;
   id?: number;
   Title?: string;
   Type?: string;
@@ -25,6 +25,12 @@ export interface ScheduleItem {
   Duration?: number;
   Event?: string[];
   Person?: string[];
+  Sessiontitel?: string;
+  Sessionart?: string;
+  "Session-Untertitel"?: string;
+
+  Room?: string;
+  Sessionsprache?: string;
 }
 
 // Then define ScheduleType as array of partial ScheduleItem

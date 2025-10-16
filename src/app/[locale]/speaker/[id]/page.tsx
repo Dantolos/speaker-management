@@ -33,7 +33,7 @@ export default async function SpeakerPage({ params }: Props) {
   }
 
   // Direkt Airtable-Daten abfragen – ohne fetch
-  const data: DeepPartialSpeaker = await getMultipleRecordsById(
+  const data: DeepPartialSpeaker | null = await getMultipleRecordsById(
     "Confirmed Contributions"!,
     id,
   );

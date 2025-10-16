@@ -2,15 +2,16 @@
 import TravelSlotFlight from "./TravelSlotFlight";
 import TravelSlotTrain from "./TravelSlotTrain";
 import TravelSlotCar from "./TravelSlotCar";
+import type { DeepPartialScheduleItemType } from "@/types/schedule";
 
 type TravelProps = {
-  slotData: object;
-  type: string;
+  slotData: DeepPartialScheduleItemType;
+  Type: string | undefined;
 };
 
-export default function TravelSlot({ slotData, type }: TravelProps) {
+export default function TravelSlot({ slotData, Type }: TravelProps) {
   const slotContent = () => {
-    switch (type) {
+    switch (Type) {
       case "Flugzeug":
         return (
           <>

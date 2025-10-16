@@ -23,305 +23,258 @@ export async function getRecordById(tableName: string, id: string) {
 }
 
 /**
- * Speaker Briefing Data
- * Fetching formatting all needed data for the Briefing page
- * @param tableName  is airtable table name
- * @param id         id of the speaker
- * @returns object   clean object with all needed data
+ * Generic helper to fetch single Airtable record by ID with selected fields.
  */
+async function fetchSingleRecord<T>(
+  table: string,
+  id: string,
+  fields: (keyof T)[],
+): Promise<(T & { id: string }) | null> {
+  const records = await base(table)
+    .select({
+      filterByFormula: `RECORD_ID()='${id}'`,
+      fields: fields as string[],
+      maxRecords: 1,
+    })
+    .firstPage();
 
+  if (records.length === 0) return null;
+  return { id: records[0].id, ...(records[0].fields as T) };
+}
+
+/**
+ * Generic helper to fetch multiple Airtable records by IDs with selected fields.
+ */
+async function fetchMultipleRecords<T extends object>(
+  table: string,
+  ids: string[],
+  fields: (keyof T)[],
+): Promise<Array<T & { id: string }>> {
+  // Map -> Promise<(T & {id: string}) | null>
+  const recordPromises = ids.map((id) =>
+    fetchSingleRecord<T>(table, id, fields),
+  );
+  // Await all Promises
+  const resolved = await Promise.all(recordPromises);
+
+  // Create a non-throwing custom type guard function
+  function isNotNull<R>(value: R | null): value is R {
+    return value !== null;
+  }
+
+  // Filter nulls with this guard
+  return resolved.filter(isNotNull);
+}
+
+/**
+ * Fetch detailed speaker data with all linked records resolved.
+ */
 export async function getMultipleRecordsById(
   tableName: string,
   id: string,
-): Promise<DeepPartialSpeaker> {
-  const filterFormula = `RECORD_ID()='${id}'`;
-  const records = await base(tableName)
-    .select({
-      fields: [
-        "Person",
-        "Sessions",
-        "Event",
-        "Hotel",
-        "Hotel Check-In",
-        "Hotel Check-Out",
-        "Anmerkung zum Aufenthalt",
-        "Reisen",
-        "Transfers",
-        "Backstage Timeslot",
-        "Referentenbetreuer",
-      ],
-      filterByFormula: filterFormula,
-      maxRecords: 1,
-    })
-    .firstPage();
+): Promise<DeepPartialSpeaker | null> {
+  // Load main record with linking fields
+  const mainRecord = await fetchSingleRecord<{
+    Person?: string[];
+    Sessions?: string[];
+    Event?: string[];
+    Hotel?: string[];
+    Reisen?: string[];
+    Transfers?: string[];
+    "Backstage Timeslot"?: string[];
+    Referentenbetreuer?: string[];
+  }>(tableName, id, [
+    "Person",
+    "Sessions",
+    "Event",
+    "Hotel",
+    "Reisen",
+    "Transfers",
+    "Backstage Timeslot",
+    "Referentenbetreuer",
+  ]);
 
-  if (records.length === 0) return [];
+  if (!mainRecord) return null;
 
-  const record = records[0];
+  // Fetch Person
+  const person =
+    mainRecord.Person && mainRecord.Person.length > 0
+      ? await fetchSingleRecord("Kontakte", mainRecord.Person[0], [
+          "Speaker Name",
+          "Last Name",
+          "First Name",
+          "Position",
+          "Organisation / Unternehmen",
+        ])
+      : null;
 
-  // Loading Person Detailes
-  const personId = record.get("Person")[0] as string | undefined;
+  // Fetch Companies related to Person
+  const companies =
+    person?.["Organisation / Unternehmen"] &&
+    person["Organisation / Unternehmen"].length > 0
+      ? await fetchMultipleRecords(
+          "Organisationen / Unternehmen",
+          person["Organisation / Unternehmen"],
+          ["Name"],
+        )
+      : [];
 
-  const person = await base("Kontakte")
-    .select({
-      fields: [
-        "Speaker Name",
-        "Last Name",
-        "First Name",
-        "Position",
-        "Organisation / Unternehmen",
-      ],
-      filterByFormula: `RECORD_ID()='${personId}'`,
-      maxRecords: 1,
-    })
-    .firstPage();
-
-  // Loading Companies of Person
-  const companyIds = person[0].fields["Organisation / Unternehmen"] as
-    | string[]
-    | undefined;
-  let companies = [];
-
-  if (Array.isArray(companyIds) && companyIds.length > 0) {
-    companies = await Promise.all(
-      companyIds.map((companyId) =>
-        base("Organisationen / Unternehmen")
-          .select({
-            fields: ["Name"],
-            filterByFormula: `RECORD_ID()='${companyId}'`,
-            maxRecords: 1,
-          })
-          .firstPage(),
-      ),
-    );
-  }
-
-  // Loading Event Detailes
-  const eventId = record.get("Event")[0] as string[] | undefined;
-  let event = {};
-
-  if (eventId) {
-    event = await base("Events")
-      .select({
-        fields: [
+  // Fetch Event
+  const event =
+    mainRecord.Event && mainRecord.Event.length > 0
+      ? await fetchSingleRecord("Events", mainRecord.Event[0], [
           "Name",
           "Datum",
           "Thema",
           "Beginn",
           "Ende",
           "Location",
-          "Thema",
           "Plattformen",
-        ],
-        filterByFormula: `RECORD_ID()='${eventId}'`,
-        maxRecords: 1,
-      })
-      .firstPage();
-  }
+        ])
+      : null;
 
-  const platformId = event[0].get("Plattformen") as string | undefined;
+  // Platform (from Event)
+  const platform =
+    event?.Plattformen && event.Plattformen.length > 0
+      ? await fetchSingleRecord("Platforms", event.Plattformen[0], [
+          "Conference Name",
+        ])
+      : null;
 
-  let platform = {};
+  // Location (from Event)
+  const location =
+    event?.Location && event.Location.length > 0
+      ? await fetchSingleRecord("Orte", event.Location[0], [
+          "Name",
+          "Strasse",
+          "Hausnummer",
+          "PLZ",
+          "Stadt",
+          "Land",
+        ])
+      : null;
 
-  if (platformId) {
-    platform = await base("Platforms")
-      .select({
-        fields: ["Conference Name"],
-        filterByFormula: `RECORD_ID()='${platformId}'`,
-        maxRecords: 1,
-      })
-      .firstPage();
-  }
+  // Hotel Details
+  const hotel =
+    mainRecord.Hotel && mainRecord.Hotel.length > 0
+      ? await fetchSingleRecord("Orte", mainRecord.Hotel[0], [
+          "Name",
+          "Strasse",
+          "Hausnummer",
+          "PLZ",
+          "Stadt",
+          "Land",
+        ])
+      : null;
 
-  const locationId = event[0].get("Location") as string | undefined;
+  // Sessions
+  const sessions =
+    mainRecord.Sessions && mainRecord.Sessions.length > 0
+      ? await fetchMultipleRecords("Sessions", mainRecord.Sessions, [
+          "Sessiontitel",
+          "Sessionart",
+          "Session-Untertitel",
+          "Session Start Time",
+          "Session End Time",
+          "Room",
+          "Sessionsprache",
+          "Dauer in Minuten",
+        ])
+      : [];
 
-  let location = {};
+  // Reisen (journey)
+  const reisen =
+    mainRecord.Reisen && mainRecord.Reisen.length > 0
+      ? await fetchMultipleRecords("Reisen", mainRecord.Reisen, [
+          "Reisetyp",
+          "Abreisezeit",
+          "Abreiseort",
+          "Ankunftsort",
+          "Flugnummer (1. Flug)",
+          "Ankunftszeit",
+          "Flug Confirmation No",
+          "via",
+          "An/Abreise",
+          "Flugnummer (2. Flug)",
+          "Zugnummer / -verbindung",
+        ])
+      : [];
 
-  if (locationId) {
-    location = await base("Orte")
-      .select({
-        fields: ["Name", "Strasse", "Hausnummer", "PLZ", "Stadt", "Land"],
-        filterByFormula: `RECORD_ID()='${locationId}'`,
-        maxRecords: 1,
-      })
-      .firstPage();
-  }
+  // Transfers
+  const transfers =
+    mainRecord.Transfers && mainRecord.Transfers.length > 0
+      ? await fetchMultipleRecords("Transfers", mainRecord.Transfers, [
+          "Pick Up Time",
+          "Drop Off Time",
+          "Bemerkung",
+          "Adresse (from Drop Off)",
+          "Adresse (from Pick Up)",
+        ])
+      : [];
 
-  // Loading Hotel Detailes
-  const hotelId = record.get("Hotel")
-    ? (record.get("Hotel")[0] as string | undefined)
-    : undefined;
-  let hotel = {};
+  // Backstage Timeslots
+  const backstageSlots =
+    mainRecord["Backstage Timeslot"] &&
+    mainRecord["Backstage Timeslot"].length > 0
+      ? await fetchMultipleRecords(
+          "Backstage Timeslots",
+          mainRecord["Backstage Timeslot"],
+          [
+            "Title",
+            "Type",
+            "Startdate",
+            "Enddate",
+            "Notes",
+            "Description",
+            "Duration",
+          ],
+        )
+      : [];
 
-  if (hotelId) {
-    hotel = await base("Orte")
-      .select({
-        fields: ["Name", "Strasse", "Hausnummer", "PLZ", "Stadt", "Land"],
-        filterByFormula: `RECORD_ID()='${hotelId}'`,
-        maxRecords: 1,
-      })
-      .firstPage();
-  }
+  // Referentenbetreuer (assistant)
+  const referentenbetreuer =
+    mainRecord.Referentenbetreuer && mainRecord.Referentenbetreuer.length > 0
+      ? await fetchSingleRecord(
+          "Referentenbetreuer",
+          mainRecord.Referentenbetreuer[0],
+          ["Kontakte"],
+        )
+      : undefined;
+  const assistant =
+    referentenbetreuer?.Kontakte && referentenbetreuer.Kontakte.length > 0
+      ? await fetchSingleRecord("Kontakte", referentenbetreuer.Kontakte[0], [
+          "Phone Number",
+          "Last Name",
+          "First Name",
+          "Sprachen",
+        ])
+      : undefined;
 
-  // Loading Session Detailes
-  const sessionIds = record.get("Sessions") as string[] | undefined;
-  let sessions = [];
-
-  if (Array.isArray(sessionIds) && sessionIds.length > 0) {
-    sessions = await Promise.all(
-      sessionIds.map((sessionId) =>
-        base("Sessions")
-          .select({
-            fields: [
-              "Sessiontitel",
-              "Sessionart",
-              "Session-Untertitel",
-              "Session Start Time",
-              "Session End Time",
-              "Room",
-              "Sessionsprache",
-              "Dauer in Minuten",
-            ],
-            filterByFormula: `RECORD_ID()='${sessionId}'`,
-            maxRecords: 1,
-          })
-          .firstPage(),
-      ),
-    );
-  }
-
-  // Loading Reisen Detailes
-  const journeyIds = record.get("Reisen") as string[] | undefined;
-  let journey = [];
-
-  if (Array.isArray(journeyIds) && journeyIds.length > 0) {
-    journey = await Promise.all(
-      journeyIds.map((journeyId) =>
-        base("Reisen")
-          .select({
-            fields: [
-              "Reisetyp",
-              "Abreisezeit",
-              "Abreiseort",
-              "Ankunftsort",
-              "Flugnummer (1. Flug)",
-              "Ankunftszeit",
-              "Flug Confirmation No",
-              "via",
-              "An/Abreise",
-              "Flugnummer (2. Flug)",
-              "Zugnummer / -verbindung",
-            ],
-            filterByFormula: `RECORD_ID()='${journeyId}'`,
-            maxRecords: 1,
-          })
-          .firstPage(),
-      ),
-    );
-  }
-
-  // Loading Transfers Detailes
-  const transferIds = record.get("Transfers") as string[] | undefined;
-  let transfers = [];
-
-  if (Array.isArray(transferIds) && transferIds.length > 0) {
-    transfers = await Promise.all(
-      transferIds.map((transferId) =>
-        base("Transfers")
-          .select({
-            fields: [
-              "Pick Up Time",
-              "Drop Off Time",
-              "Bemerkung",
-              "Adresse (from Drop Off)",
-              "Adresse (from Pick Up)",
-            ],
-            filterByFormula: `RECORD_ID()='${transferId}'`,
-            maxRecords: 1,
-          })
-          .firstPage(),
-      ),
-    );
-  }
-
-  // Loading Backstage Details
-  const backstageIds = record.get("Backstage Timeslot") as string[] | undefined;
-  let backstageSlots = [];
-
-  if (Array.isArray(backstageIds) && backstageIds.length > 0) {
-    backstageSlots = await Promise.all(
-      backstageIds.map((backstageId) =>
-        base("Backstage Timeslots")
-          .select({
-            fields: [],
-            filterByFormula: `RECORD_ID()='${backstageId}'`,
-            maxRecords: 1,
-          })
-          .firstPage(),
-      ),
-    );
-  }
-
-  // Loading Referentenbetreuer
-  const assistantId = record.get("Referentenbetreuer")
-    ? (record.get("Referentenbetreuer")[0] as string | undefined)
-    : undefined;
-  let assistant = {};
-
-  if (assistantId) {
-    const assistantcontact = await base("Referentenbetreuer")
-      .select({
-        fields: [],
-        filterByFormula: `RECORD_ID()='${assistantId}'`,
-        maxRecords: 1,
-      })
-      .firstPage();
-    assistant = await base("Kontakte")
-      .select({
-        fields: ["Phone Number", "Sprachen", "First Name", "Last Name"],
-        filterByFormula: `RECORD_ID()='${assistantcontact[0].fields.Kontakte[0]}'`,
-        maxRecords: 1,
-      })
-      .firstPage();
-  }
-
+  // Return combined data matching DeepPartialSpeaker
   return {
-    id: record.id,
-    ...record.fields,
-    Person: {
-      id: person.id,
-      ...person[0].fields,
-      "Organisation / Unternehmen": companies.map((e) => ({
-        id: e.id,
-        ...e[0].fields,
-      })),
-    },
-    Event: {
-      id: event.id,
-      ...event[0].fields,
-      Plattformen: {
-        id: platform.id,
-        ...platform[0].fields,
-      },
-      Location: {
-        id: location.id,
-        ...location[0].fields,
-      },
-    },
-    Hotel: {
-      id: hotel.id,
-      ...hotel[0]?.fields,
-    },
-    Referentenbetreuer: {
-      id: assistant.id,
-      ...assistant[0]?.fields,
-    },
-    Sessions: sessions.map((e) => ({ id: e.id, ...e[0].fields })),
-    Reisen: journey.map((e) => ({ id: e.id, ...e[0].fields })),
-    Transfers: transfers.map((e) => ({ id: e.id, ...e[0].fields })),
-    Backstage: backstageSlots.map((e, index) => ({
-      id: index,
-      ...e[0].fields,
-    })),
+    ...mainRecord,
+    Person: person
+      ? {
+          ...person,
+          "Organisation / Unternehmen": companies,
+        }
+      : undefined,
+    Event: event
+      ? {
+          ...event,
+          Plattformen: platform ?? undefined,
+          Location: location ?? undefined,
+        }
+      : undefined,
+    Hotel: hotel ?? undefined,
+    Referentenbetreuer: assistant
+      ? {
+          ...assistant,
+        }
+      : undefined,
+    Sessions: sessions,
+    Reisen: reisen,
+    Transfers: transfers,
+    Backstage: backstageSlots,
   };
 }

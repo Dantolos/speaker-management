@@ -1,8 +1,9 @@
 "use client";
 import { Camera, Utensils } from "lucide-react";
 import { useTranslations } from "next-intl";
+import type { DeepPartialScheduleItemType } from "@/types/schedule";
 
-type BackstageProps = { backstageData: object };
+type BackstageProps = { backstageData: DeepPartialScheduleItemType };
 
 export default function BackstageSlot({ backstageData }: BackstageProps) {
   const t = useTranslations("SpeakerBriefing");

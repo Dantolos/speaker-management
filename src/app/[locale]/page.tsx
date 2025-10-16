@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server";
 
-export default async function Homepage({ params }) {
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+export default async function Homepage({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "HomePage" });
 

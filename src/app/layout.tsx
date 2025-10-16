@@ -1,4 +1,4 @@
-import { NextIntlClientProvider } from "next-intl";
+//import { NextIntlClientProvider } from "next-intl";
 
 type Props = {
   children: React.ReactNode;
@@ -7,9 +7,7 @@ type Props = {
 export default async function RootLayout({ children }: Props) {
   return (
     <html lang="en">
-      <body>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

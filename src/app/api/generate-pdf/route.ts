@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 
 export const runtime = "nodejs"; // Puppeteer requires Node.js runtime
@@ -13,19 +13,23 @@ export async function POST(request: Request) {
 
   const browser = await puppeteer.launch({
     args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
     executablePath,
     headless: chromium.headless,
   });
+
   const page = await browser.newPage();
-  await page.goto(url, { waitUntil: "networkidle0" });
+
+  // Parse cookies from incoming request and set them for Puppeteer page
   const puppeteerCookies = cookieHeader.split(";").map((cookie) => {
     const [name, ...rest] = cookie.trim().split("=");
     const value = rest.join("=");
     return { name, value, domain, path: "/" };
   });
 
-  await page.setCookie(...puppeteerCookies);
+  if (puppeteerCookies.length > 0 && puppeteerCookies[0].name !== "") {
+    await page.setCookie(...puppeteerCookies);
+  }
+
   await page.goto(url, { waitUntil: "networkidle2" });
   await page.emulateMediaType("screen");
 

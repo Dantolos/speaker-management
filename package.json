@@ -9,12 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^141.0.0",
     "airtable": "^0.12.2",
     "iron-session": "^8.0.4",
     "lucide-react": "^0.545.0",
     "next": "15.5.4",
     "next-intl": "^4.3.11",
     "puppeteer": "^24.24.0",
+    "puppeteer-core": "^24.25.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "swr": "^2.3.6"

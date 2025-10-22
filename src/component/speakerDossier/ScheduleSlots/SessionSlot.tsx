@@ -1,5 +1,5 @@
 "use client";
-import { useTranslations, useFormatter } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Clock, Languages, MapPin } from "lucide-react";
 import SessionInformationTag from "./SessionInformationTag";
 
@@ -15,7 +15,7 @@ export default function SessionSlot({
   language,
 }: SessionProps) {
   const t = useTranslations("SpeakerBriefing");
-  const format = useFormatter();
+  //const format = useFormatter();
   //const pickup_Date = pickUpTime ? new Date(pickUpTime) : undefined;
 
   return (

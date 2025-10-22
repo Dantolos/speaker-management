@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+//import { useTranslations } from "next-intl";
 
 type PDFPros = {
   filename: string;
@@ -10,7 +10,7 @@ type PDFPros = {
 export default function DownloadPdfButton({ filename }: PDFPros) {
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
-  const t = useTranslations("SpeakerBriefing");
+  //const t = useTranslations("SpeakerBriefing");
 
   // Datum formatieren und Dateiname bauen
   const getFormattedDate = () => {
@@ -53,7 +53,7 @@ export default function DownloadPdfButton({ filename }: PDFPros) {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch (_error) {
       alert("Fehler beim PDF-Download");
     } finally {
       setIsLoading(false);

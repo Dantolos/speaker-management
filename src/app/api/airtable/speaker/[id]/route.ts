@@ -12,6 +12,7 @@ export async function GET(
     const record = await getRecordById(process.env.AIRTABLE_TABLE_NAME!, id);
     return NextResponse.json(record);
   } catch (error) {
+    console.log(`Error: Speaker Request (speaker/[id]/route.ts): ${error}`);
     return NextResponse.json({ error: "Record not found" }, { status: 404 });
   }
 }

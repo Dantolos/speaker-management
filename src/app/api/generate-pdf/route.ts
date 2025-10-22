@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import puppeteer from "puppeteer-core";
+
+import puppeteer from "puppeteer";
 import chromium from "@sparticuz/chromium";
 
 export const runtime = "nodejs"; // Puppeteer requires Node.js runtime
@@ -9,11 +10,19 @@ export async function POST(request: Request) {
   const cookieHeader = request.headers.get("cookie") || "";
   const domain = new URL(url).hostname;
 
-  const executablePath = await chromium.executablePath();
+  const isServerless =
+    !!process.env.AWS_LAMBDA_FUNCTION_VERSION ||
+    !!process.env.VERCEL ||
+    !!process.env.IS_SERVERLESS ||
+    (typeof process.env.NEXT_RUNTIME !== "undefined" &&
+      process.env.NEXT_RUNTIME === "edge");
+
+  // oder anderer Pfad zum Chrome-Binary
 
   const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath,
+    args: isServerless ? chromium.args : [],
+    executablePath: isServerless ? await chromium.executablePath() : undefined,
+    headless: true,
   });
 
   const page = await browser.newPage();

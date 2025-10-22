@@ -33,6 +33,7 @@ export default function TravelSlotCar({ destination, arrivalDate }: CarProps) {
         </div>
       </div>
       <p>{t("schedule-car-text")}</p>
+      {destination && <p>{destination}</p>}
     </>
   );
 }

@@ -7,6 +7,7 @@ export type DeepPartial<T> = {
 
 export interface Speaker {
   id?: string;
+  Name?: string;
   Person?: {
     "Speaker Name": string;
     "Last Name": string;

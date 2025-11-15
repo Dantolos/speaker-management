@@ -14,7 +14,7 @@ export default function SpeakerTable({ Speakers }: { Speakers: Speaker[] }) {
           >
             <td>
               <p className="px-3 py-1.5 bg-gray-200 rounded-3xl m-2">
-                {`${speaker.Person?.["First Name"]} ${speaker.Person?.["Last Name"]}`}
+                {`${speaker?.Name}`}
               </p>
             </td>
 

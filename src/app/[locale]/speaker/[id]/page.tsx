@@ -3,15 +3,26 @@ import { getFormatter } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { getMultipleRecordsById } from "@/services/airtable";
 
-import { getSession } from "@/utils/auth";
+import { getSession, getTeamSession } from "@/utils/auth";
 import { redirect } from "next/navigation";
 import InfoRow from "@/component/speakerDossier/InfoRow";
 import Link from "next/link";
 import ButtonGeneratePdf from "@/component/speakerDossier/ButtonGeneratePdf";
 import programDataMapping from "@/services/programMapping";
 import Schedule from "@/component/speakerDossier/Schedule";
-import { Languages, Phone } from "lucide-react";
+import {
+  BedDouble,
+  Calendar,
+  Globe,
+  Info,
+  Languages,
+  Mic,
+  Phone,
+  Spotlight,
+} from "lucide-react";
 import type { DeepPartialSpeaker } from "@/types/speaker";
+import Accordeon from "@/component/UI/Accordeon";
+import LinkButton from "@/component/speakerDossier/LinkButton";
 
 interface Props {
   params: Promise<{
@@ -25,10 +36,12 @@ export default async function SpeakerPage({ params }: Props) {
   const format = await getFormatter({ locale });
 
   const t = await getTranslations({ locale, namespace: "SpeakerBriefing" });
+  const tg = await getTranslations({ locale, namespace: "General" });
 
   const session = await getSession();
+  const sessionTeam = await getTeamSession();
 
-  if (!session.isAuthenticated) {
+  if (!session.isAuthenticated && !sessionTeam.isAuthenticated) {
     redirect(`/sign-in?redirect=/speaker/${id}`);
   }
 
@@ -37,6 +50,13 @@ export default async function SpeakerPage({ params }: Props) {
     "Confirmed Contributions"!,
     id,
   );
+
+  const event_start = data?.Event?.["Beginn"]
+    ? new Date(data?.Event?.["Beginn"])
+    : new Date();
+  const event_end = data?.Event?.["Ende"]
+    ? new Date(data?.Event?.["Ende"])
+    : new Date();
 
   if (!data) {
     notFound();
@@ -68,18 +88,74 @@ export default async function SpeakerPage({ params }: Props) {
 
   return (
     <div className="p-8 max-w-[800px] m-auto ">
-      <h3 className="text-xl">
-        {data.Event?.Plattformen?.["Conference Name"] || "Event"}
-      </h3>
-      <h1 className="text-4xl font-bold">
-        {`${t("title")} ${data.Person?.["Speaker Name"] || "Kein Name"}`}
-      </h1>
+      <div className="mb-4 ">
+        <h1 className="text-4xl font-bold mb-4">
+          {`${t("title")} ${data.Person?.["Speaker Name"] || "Kein Name"}`}
+        </h1>
+      </div>
+      <Accordeon title={t("section-event")} icon={<Info />}>
+        <div className="flex flex-col gap-4">
+          <h3 className="text-xl font-bold">
+            {data.Event?.Plattformen?.["Conference Name"] || "Event"}
+          </h3>
+          <div className="flex gap-[20px] w-full justify-between">
+            <div className="bg-white rounded-2xl pr-4  ">
+              <span className="font-bold bg-gray-300 px-4 py-1 mr-2 rounded-2xl">
+                {tg("from")}
+              </span>
+              <span className="">
+                {format.dateTime(event_start, {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+            <div className="bg-white rounded-2xl pr-4 ">
+              <span className="font-bold bg-gray-300 px-4 py-1 mr-2 rounded-2xl">
+                {tg("till")}
+              </span>
+              <span className="">
+                {format.dateTime(event_end, {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+          </div>
 
-      <div className="bg-gray-100 rounded-2xl my-4 p-4">
-        <h2 className="text-2xl font-bold border-b-1 pb-2 mb-4">
-          {t("section-gig")}
-        </h2>
+          <div className="p-2 bg-white rounded-2xl">
+            <p className="font-bold">{data.Event?.Location?.Name}</p>
+            <p className="">{`${data.Event?.Location?.Strasse} ${data.Event?.Location?.Hausnummer}`}</p>
+            <p className="">{`${data.Event?.Location?.PLZ} ${data.Event?.Location?.Stadt}`}</p>
+            <p className="">{data.Event?.Location?.Land}</p>
+          </div>
+          <div className="flex gap-2  w-full">
+            <LinkButton
+              text={tg("website")}
+              link="https://lucerne-dialogue.ch/eef"
+              icon={<Globe size={30} />}
+            />
+            <LinkButton
+              text={tg("speaker")}
+              link="https://lucerne-dialogue.ch/eef/2025/programm-2025"
+              icon={<Mic size={30} />}
+            />
+            <LinkButton
+              text={tg("program")}
+              link="https://lucerne-dialogue.ch/eef/2025/speaker-2025"
+              icon={<Calendar size={30} />}
+            />
+          </div>
+        </div>
+      </Accordeon>
 
+      <Accordeon title={t("section-gig")} icon={<Spotlight />}>
         {data.Sessions && (
           <InfoRow
             label={t("label-art")}
@@ -96,6 +172,7 @@ export default async function SpeakerPage({ params }: Props) {
             }
           ></InfoRow>
         )}
+
         <InfoRow
           label={t("label-date")}
           value={
@@ -104,6 +181,7 @@ export default async function SpeakerPage({ params }: Props) {
             </>
           }
         ></InfoRow>
+
         {data.Event && (
           <InfoRow
             label={t("label-location")}
@@ -117,6 +195,7 @@ export default async function SpeakerPage({ params }: Props) {
             }
           ></InfoRow>
         )}
+
         {data.Sessions?.length && data.Sessions.length > 0 && (
           <InfoRow
             label={t("label-room")}
@@ -139,60 +218,9 @@ export default async function SpeakerPage({ params }: Props) {
               }
             ></InfoRow>
           )}
-      </div>
+      </Accordeon>
 
-      <div className="bg-gray-100 rounded-2xl my-4 p-4">
-        <h2 className="text-2xl font-bold border-b-1 pb-2 mb-4">
-          {t("section-on-site")}
-        </h2>
-        <InfoRow
-          label={t("on-site-badge")}
-          value={
-            <>
-              <p>{t("badge-information")}</p>
-            </>
-          }
-        ></InfoRow>
-        {data.Referentenbetreuer && (
-          <InfoRow
-            label={t("on-site-contact")}
-            value={
-              <>
-                <div className="flex flex-col gap-1">
-                  <h5 className="font-bold">{`${data.Referentenbetreuer["First Name"]} ${data.Referentenbetreuer["Last Name"]}`}</h5>
-                  {data.Referentenbetreuer["Phone Number"] && (
-                    <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
-                      <Phone size="20" />
-                      {data.Referentenbetreuer["Phone Number"]}
-                    </div>
-                  )}
-                  {data.Referentenbetreuer["Sprachen"] && (
-                    <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
-                      <Languages size="20" />
-                      {data.Referentenbetreuer["Sprachen"].map(
-                        (sprache, index) => (
-                          <span
-                            key={index}
-                            className="bg-gray-200 rounded-2xl py-1 px-2"
-                          >
-                            {t(sprache!)}
-                          </span>
-                        ),
-                      )}
-                    </div>
-                  )}
-                </div>
-              </>
-            }
-            note={t("on-site-contact-text")}
-          ></InfoRow>
-        )}
-      </div>
-
-      <div className="bg-gray-100 rounded-2xl my-4 p-4">
-        <h2 className="text-2xl font-bold border-b-1 pb-2 mb-4">
-          {t("section-stay")}
-        </h2>
+      <Accordeon title={t("section-stay")} icon={<BedDouble />}>
         {data["Anmerkung zum Aufenthalt"] && (
           <p>{data["Anmerkung zum Aufenthalt"]}</p>
         )}
@@ -243,9 +271,67 @@ export default async function SpeakerPage({ params }: Props) {
                 }
               ></InfoRow>
             )}
+            {data["Hotel Confirmation Number"] && (
+              <InfoRow
+                label={t("label-booking-nr")}
+                value={
+                  <>
+                    <p>{data["Hotel Confirmation Number"]}</p>
+                  </>
+                }
+              ></InfoRow>
+            )}
           </>
         ) : (
           <p></p>
+        )}
+      </Accordeon>
+
+      <div className="bg-gray-100 rounded-2xl my-4 p-4">
+        <h2 className="text-2xl font-bold border-b-1 pb-2 mb-4">
+          {t("section-on-site")}
+        </h2>
+        <InfoRow
+          label={t("on-site-badge")}
+          value={
+            <>
+              <p>{t("badge-information")}</p>
+            </>
+          }
+        ></InfoRow>
+        {data.Referentenbetreuer && (
+          <InfoRow
+            label={t("on-site-contact")}
+            value={
+              <>
+                <div className="flex flex-col gap-1">
+                  <h5 className="font-bold">{`${data.Referentenbetreuer["First Name"]} ${data.Referentenbetreuer["Last Name"]}`}</h5>
+                  {data.Referentenbetreuer["Phone Number"] && (
+                    <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
+                      <Phone size="20" />
+                      {data.Referentenbetreuer["Phone Number"]}
+                    </div>
+                  )}
+                  {data.Referentenbetreuer["Sprachen"] && (
+                    <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
+                      <Languages size="20" />
+                      {data.Referentenbetreuer["Sprachen"].map(
+                        (sprache, index) => (
+                          <span
+                            key={index}
+                            className="bg-gray-200 rounded-2xl py-1 px-2"
+                          >
+                            {t(sprache!)}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            }
+            note={t("on-site-contact-text")}
+          ></InfoRow>
         )}
       </div>
 
@@ -293,11 +379,11 @@ export default async function SpeakerPage({ params }: Props) {
           </div>
           <div className="w-[300px]">
             <p className="font-bold">{t("contact-person")}</p>
-            <p>Project Manager Andermatt Dialog</p>
-            <p>Alexandra Ertle </p>
-            <p>Tel: +41 78 319 46 86</p>
-            <Link href={`mailto:alexandra.ertle@andermatt-dialog.ch`}>
-              alexandra.ertle@andermatt-dialog.ch
+            <p>Project Manager Lucerne Dialogue</p>
+            <p>Ruth Inniger</p>
+            <p>Tel: +41 41 260 85 34</p>
+            <Link href={`mailto:ruth.inniger@lucerne-dialogue.ch`}>
+              ruth.inniger@lucerne-dialogue.ch
             </Link>
           </div>
         </div>

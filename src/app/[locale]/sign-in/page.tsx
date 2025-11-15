@@ -1,23 +1,22 @@
-import { getSession } from "@/utils/auth";
-import { redirect } from "next/navigation";
-import { auth } from "./actions";
+import { auth, authTeam } from "./actions";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 interface Props {
-  searchParams: Promise<{ redirect?: string }>;
+  searchParams: Promise<{ redirect?: string; type?: string }>;
   params: Promise<{ locale: string }>;
 }
 
 export default async function SignIn({ searchParams, params }: Props) {
-  const session = await getSession();
-  const { redirect: redirectParam } = await searchParams;
+  //const session = await getSession();
+  const { redirect: redirectParam, type: sessionType } = await searchParams;
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "SignIn" });
 
-  if (session.isAuthenticated) {
-    redirect(redirectParam || "/");
-  }
+  // if (session.isAuthenticated) {
+  //   redirect(redirectParam || "/");
+  // }
+  console.log(sessionType);
 
   return (
     <div className="bg-gray-600 w-[100vw] h-[100vh] absolute px-2">
@@ -28,7 +27,10 @@ export default async function SignIn({ searchParams, params }: Props) {
           </h2>
           <p className="text-center text-gray-700">{t("description")}</p>
         </div>
-        <form action={auth} className=" rounded-3xl bg-white  ">
+        <form
+          action={sessionType && sessionType === "team" ? authTeam : auth}
+          className="rounded-3xl bg-white"
+        >
           <input
             type="hidden"
             name="redirect"

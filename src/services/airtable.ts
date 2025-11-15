@@ -8,10 +8,13 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
 export async function getRecords(tableName: string, filterFormula?: string) {
   const queryOptions = filterFormula ? { filterByFormula: filterFormula } : {};
   const records = await base(tableName).select(queryOptions).all();
-  return records.map((record) => ({
+  const output = records.map((record) => ({
     id: record.id,
     ...record.fields,
   }));
+
+  //console.log(output);
+  return output;
 }
 
 export async function getRecordById(tableName: string, id: string) {
@@ -81,6 +84,9 @@ export async function getMultipleRecordsById(
     Hotel?: string[];
     Reisen?: string[];
     Transfers?: string[];
+    "Hotel Confirmation Number"?: string;
+    "Hotel Check-In"?: string;
+    "Hotel Check-Out"?: string;
     "Backstage Timeslot"?: string[];
     Referentenbetreuer?: string[];
   }>(tableName, id, [
@@ -88,6 +94,9 @@ export async function getMultipleRecordsById(
     "Sessions",
     "Event",
     "Hotel",
+    "Hotel Confirmation Number",
+    "Hotel Check-In",
+    "Hotel Check-Out",
     "Reisen",
     "Transfers",
     "Backstage Timeslot",

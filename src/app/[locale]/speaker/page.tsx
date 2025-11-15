@@ -1,40 +1,23 @@
-"use client";
-import useSWR from "swr";
-import Link from "next/link";
+import { getRecords } from "@/services/airtable";
+import { redirect } from "next/navigation";
 
-interface Speaker {
-  id: string;
-  Name: string;
-  // ... add other properties you expect
-}
+import type { Speaker } from "@/types/speaker";
+import SpeakerTable from "@/component/Pages/Speaker/SpeakerTable";
+import { getTeamSession } from "@/utils/auth";
 
-export default function HomePage() {
-  const { data, error } = useSWR<Speaker[]>(
-    "/api/airtable/speaker/events",
-    async (url: string) => fetch(url).then((res) => res.json()),
-  );
+export default async function SpeakerPage() {
+  const session = await getTeamSession();
 
-  if (error) return <div>Error!</div>;
-  if (!data) return <div>Loading...</div>;
+  if (!session.isAuthenticated) {
+    redirect(`/sign-in?redirect=/speaker&type=team`);
+  }
+
+  const Speakers: Speaker[] = await getRecords("Confirmed Contributions");
 
   return (
     <div>
-      <table>
-        <tbody>
-          {data.map((record) => (
-            <tr key={record.id}>
-              <td>
-                <Link href={`./speaker/${record.id}`}>
-                  <p className="px-3 py-1.5 bg-gray-200 rounded-3xl m-2">
-                    {record["Name"]}
-                  </p>
-                </Link>
-              </td>
-              <td>{record.id}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h1>Speaker</h1>
+      {Speakers && Speakers.length > 0 && <SpeakerTable Speakers={Speakers} />}
     </div>
   );
 }

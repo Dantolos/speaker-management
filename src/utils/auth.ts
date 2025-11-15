@@ -19,3 +19,17 @@ export async function getSession() {
 
   return await getIronSession<SessionData>(cookieStore, sessionOptions);
 }
+
+export const teamSessionOptions: SessionOptions = {
+  password: process.env.IRON_SESSION_SECRET_TEAM!, // different secret or reuse the same
+  cookieName: "_auth_team",
+  cookieOptions: {
+    secure: process.env.NODE_ENV === "production",
+    path: "/", // or "/" if shared domain but different cookie
+  },
+};
+
+export async function getTeamSession() {
+  const cookieStore = await cookies();
+  return await getIronSession<SessionData>(cookieStore, teamSessionOptions);
+}

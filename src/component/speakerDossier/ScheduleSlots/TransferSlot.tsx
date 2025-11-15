@@ -1,4 +1,5 @@
 "use client";
+import { Bus } from "lucide-react";
 import { useTranslations, useFormatter } from "next-intl";
 
 type TransferProps = {
@@ -17,13 +18,19 @@ export default function TransferSlot({
   dropoffAddress,
 }: TransferProps) {
   const t = useTranslations("SpeakerBriefing");
+  const tg = useTranslations("General");
   const format = useFormatter();
   const pickup_Date = pickUpTime ? new Date(pickUpTime) : undefined;
   const dropoff_Date = dropoffTime ? new Date(dropoffTime) : undefined;
 
   return (
     <div className="flex flex-col gap-2">
-      <p>{note}</p>
+      <div className="flex gap-2 items-center flex-wrap">
+        <Bus size={30} />
+        <h3 className="font-bold text-2xl">Transfer</h3>
+      </div>
+      <p>{t("schedule-transfer-text")}</p>
+
       <div className="w-full flex gap-2">
         <div className="bg-white p-2 rounded-2xl">
           <p className="font-bold">{t("schedule-pickup")}</p>
@@ -46,6 +53,12 @@ export default function TransferSlot({
           <div>{dropoffAddress}</div>
         </div>
       </div>
+      {note && (
+        <div className="bg-white p-2 rounded-2xl">
+          <p className="font-bold">{tg("note")}</p>
+          <p>{note}</p>
+        </div>
+      )}
     </div>
   );
 }

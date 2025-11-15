@@ -6,8 +6,8 @@ export type DeepPartial<T> = {
 };
 
 export interface Speaker {
-  id: string;
-  Person: {
+  id?: string;
+  Person?: {
     "Speaker Name": string;
     "Last Name": string;
     "First Name": string;
@@ -16,26 +16,32 @@ export interface Speaker {
       Name: string;
     }>;
   };
-  Event: {
-    Name: string;
-    Plattformen: {
-      "Conference Name": string;
-    };
-    Datum: string;
-    Thema: string;
-    Ende: string;
-    Beginn: string;
-    Location: {
-      Name: string;
-      Strasse: string;
-      Hausnummer: number;
-      PLZ: number;
-      Stadt: string;
-      Land: string;
-    };
-  };
+  Event?:
+    | {
+        Name: string | undefined;
+        Plattformen:
+          | {
+              "Conference Name": string | undefined;
+            }
+          | undefined;
+        Datum: string;
+        Thema: string;
+        Ende: string;
+        Beginn: string;
+        Location:
+          | {
+              Name?: string;
+              Strasse?: string;
+              Hausnummer?: number;
+              PLZ?: number;
+              Stadt?: string;
+              Land?: string;
+            }
+          | undefined;
+      }
+    | undefined;
   "Anmerkung zum Aufenthalt"?: string;
-  Hotel: {
+  Hotel?: {
     Name: string;
     Strasse: string;
     Hausnummer: number;
@@ -43,15 +49,16 @@ export interface Speaker {
     Stadt: string;
     Land: string;
   };
-  "Hotel Check-In": string;
-  "Hotel Check-Out": string;
-  Referentenbetreuer: {
+  "Hotel Check-In"?: string;
+  "Hotel Check-Out"?: string;
+  "Hotel Confirmation Number"?: string;
+  Referentenbetreuer?: {
     "Phone Number": string;
-    Sprachen: string[];
+    Sprachen?: string[];
     "Last Name": string;
     "First Name": string;
   };
-  Sessions: Array<{
+  Sessions?: Array<{
     Room: string;
     "Session Start Time": string;
     "Session End Time": string;
@@ -61,7 +68,7 @@ export interface Speaker {
     Sessionart?: string[];
     Sessionsprache?: string;
   }>;
-  Reisen: Array<{
+  Reisen?: Array<{
     Reisetyp: string;
     Abreiseort: string;
     Ankunftsort: string;
@@ -74,16 +81,16 @@ export interface Speaker {
     "Flugnummer (2. Flug)"?: string;
     "Zugnummer / -verbindung"?: string;
   }>;
-  Transfers: Array<{
+  Transfers?: Array<{
     "Pick Up Time": string;
     "Drop Off Time": string;
-    Bemerkung: string;
-    "Adresse (from Drop Off)": string[];
-    "Adresse (from Pick Up)": string[];
+    Bemerkung?: string;
+    "Adresse (from Drop Off)"?: string[] | string;
+    "Adresse (from Pick Up)"?: string[] | string;
   }>;
-  "Backstage Timeslot": string[];
-  Backstage: Array<{
-    id: string;
+  "Backstage Timeslot"?: string[];
+  Backstage?: Array<{
+    id: string | number;
     Title: string;
     Type: string;
     Startdate: string;

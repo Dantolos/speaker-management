@@ -4,12 +4,14 @@ import { Clock, Languages, MapPin } from "lucide-react";
 import SessionInformationTag from "./SessionInformationTag";
 
 type SessionProps = {
+  subtitle?: string;
   room?: string;
   duration?: number;
   language?: string;
 };
 
 export default function SessionSlot({
+  subtitle,
   room,
   duration,
   language,
@@ -20,6 +22,7 @@ export default function SessionSlot({
 
   return (
     <div className="flex flex-col gap-2 ">
+      {subtitle && <h6 className="font-bold text-2xl">{subtitle}</h6>}
       {room && (
         <SessionInformationTag
           label={t("label-room")}
@@ -41,7 +44,8 @@ export default function SessionSlot({
           icon={<Languages size="22" className="  text-gray-400" />}
         />
       )}
-      <h5 className="font-bold leading-0 mt-4">
+
+      <h5 className="font-bold leading-0 mt-4 mb-2">
         {t("schedule-session-end-title")}
       </h5>
       <p>{t("schedule-session-end-text")}</p>

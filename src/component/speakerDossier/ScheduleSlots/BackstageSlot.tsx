@@ -1,5 +1,5 @@
 "use client";
-import { Camera, Utensils } from "lucide-react";
+import { Camera, Eye, Star, Utensils } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { DeepPartialScheduleItemType } from "@/types/schedule";
 
@@ -13,7 +13,19 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
       case "Maske":
         return (
           <>
-            <h3 className="text-2xl">{backstageData.Title}</h3>
+            <div className="flex gap-4 items-center mb-2">
+              <Eye
+                className="bg-white p-2 rounded-xl"
+                size={40}
+                strokeWidth="2px"
+              />
+              <div>
+                <h3 className="font-bold text-xl leading-[.8em]">
+                  {backstageData.Title}
+                </h3>
+              </div>
+            </div>
+
             <p>{t("schedule-masking-information")}</p>
             {backstageData.Notes && (
               <div className=" bg-white p-2 rounded-2xl">
@@ -100,12 +112,18 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
       default:
         return (
           <>
-            <div>
-              <h1 className="font-bold text-xl leading-[.8em]">
-                {backstageData.Title}
-              </h1>
+            <div className="flex gap-4 items-center mb-2">
+              <Star
+                className="bg-white p-2 rounded-xl"
+                size={40}
+                strokeWidth="2px"
+              />
+              <div>
+                <h3 className="font-bold text-xl leading-[.8em]">
+                  {backstageData.Title}
+                </h3>
+              </div>
             </div>
-
             <p>{backstageData.Description}</p>
             {backstageData.Notes && (
               <div className=" bg-white p-2 rounded-2xl">

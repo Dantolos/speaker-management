@@ -59,15 +59,13 @@ export default function ScheduleSlot({
         )}
       </div>
       <div className="w-full border-l-2 border-gray-200 pl-4">
-        {scheduleData["Session-Untertitel"] && (
-          <h6>{scheduleData["Session-Untertitel"]}</h6>
-        )}
         <h4 className="font-bold text-xl">{Title}</h4>
         {(() => {
           switch (Type) {
             case "session":
               return (
                 <SessionSlot
+                  subtitle={scheduleData["Session-Untertitel"]}
                   room={scheduleData["Room"]}
                   duration={scheduleData.Duration}
                   language={scheduleData["Sessionsprache"]}
@@ -92,6 +90,7 @@ export default function ScheduleSlot({
               );
             case "backstage":
               return <BackstageSlot backstageData={scheduleData} />;
+
             default:
               return null;
           }

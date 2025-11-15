@@ -2,6 +2,15 @@
   "HomePage": {
     "title": "Hello world!"
   },
+  "General": {
+    "from": "from",
+    "till": "till",
+    "at": "at",
+    "website": "Website",
+    "speaker": "Speaker",
+    "program": "Program",
+    "note": "Note"
+  },
   "SignIn": {
     "title": "Welcome to your personal Speaker Dossier",
     "description": "Here you will find all the information you need about your appearance at our event.",
@@ -14,6 +23,7 @@
     "Französisch": "French",
     "Italienisch": "Italian",
     "title": "Briefing for",
+    "section-event": "About the Event",
     "section-gig": "Gig",
     "label-art": "Art",
     "label-date": "Date",
@@ -30,6 +40,7 @@
     "label-hotel": "Hotel",
     "label-check-in": "Check-in",
     "label-check-out": "Check-out",
+    "label-booking-nr": "Booking Nr.",
     "section-schedule": "Individual Schedule",
     "schedule-arrival": "Arrival",
     "schedule-departure": "Departure",
@@ -40,8 +51,9 @@
     "schedule-trainnr": "Train Nr.",
     "schedule-car-title": "Arrival by car",
     "schedule-car-text": "You have informed us that you will be arriving by car.",
-    "schedule-car-arrival": "We look forward to seeing you at",
+    "schedule-car-arrival": "We look forward to seeing you at {time} in {venue}.",
     "schedule-transfer": "Transfer",
+    "schedule-transfer-text": "We will organize the transfer for you.",
     "schedule-pickup": "Pick Up",
     "schedule-dropoff": "Drop Off",
     "schedule-masking": "Show preparation",

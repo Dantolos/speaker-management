@@ -156,22 +156,22 @@ export default async function SpeakerPage({ params }: Props) {
       </Accordeon>
 
       <Accordeon title={t("section-gig")} icon={<Spotlight />}>
-        {data.Sessions && (
+        {/*{data.Sessions && data.Sessions.length > 0 && (
           <InfoRow
             label={t("label-art")}
             value={
               <>
-                {data.Sessions[0]?.Sessionart && (
-                  <>
-                    <p>{data.Sessions[0].Sessionart}:</p>
-                    <p>{data.Sessions[0].Sessiontitel}</p>
-                    <p>{data.Sessions[0]["Session-Untertitel"]}</p>
-                  </>
-                )}
+                {data.Sessions.map((session, index) => (
+                  <div key={index}>
+                    <p>{session.Sessionart}:</p>
+                    <p>{session.Sessiontitel}</p>
+                    <p>{session["Session-Untertitel"]}</p>
+                  </div>
+                ))}
               </>
             }
           ></InfoRow>
-        )}
+        )}*/}
 
         <InfoRow
           label={t("label-date")}
@@ -196,7 +196,7 @@ export default async function SpeakerPage({ params }: Props) {
           ></InfoRow>
         )}
 
-        {data.Sessions?.length && data.Sessions.length > 0 && (
+        {data.Sessions && data.Sessions.length > 0 && (
           <InfoRow
             label={t("label-room")}
             value={
@@ -206,8 +206,8 @@ export default async function SpeakerPage({ params }: Props) {
             }
           ></InfoRow>
         )}
-        {data.Sessions?.length &&
-          data.Sessions.length > 0 &&
+        {data.Sessions &&
+          data.Sessions?.length > 0 &&
           data.Sessions[0]?.Sessionsprache && (
             <InfoRow
               label={t("label-language")}
@@ -220,132 +220,138 @@ export default async function SpeakerPage({ params }: Props) {
           )}
       </Accordeon>
 
-      <Accordeon title={t("section-stay")} icon={<BedDouble />}>
-        {data["Anmerkung zum Aufenthalt"] && (
-          <p>{data["Anmerkung zum Aufenthalt"]}</p>
-        )}
-        {data.Hotel?.Name ? (
-          <>
-            <InfoRow
-              label={t("label-hotel")}
-              value={
-                <>
-                  <>
-                    <p className="font-bold">{data.Hotel.Name}</p>
-                    <p className="">{`${data.Hotel?.Strasse} ${data.Hotel?.Hausnummer}`}</p>
-                    <p className="">{`${data.Hotel?.PLZ} ${data.Hotel?.Stadt}`}</p>
-                    <p className="">{data.Hotel?.Land}</p>
-                  </>
-                </>
-              }
-            ></InfoRow>
-            {checkinDate && (
-              <InfoRow
-                label={t("label-check-in")}
-                value={
-                  <>
-                    <p>
-                      {format.dateTime(checkinDate, {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </>
-                }
-              ></InfoRow>
-            )}
-            {checkoutDate && (
-              <InfoRow
-                label={t("label-check-out")}
-                value={
-                  <>
-                    <p>
-                      {format.dateTime(checkoutDate, {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </>
-                }
-              ></InfoRow>
-            )}
-            {data["Hotel Confirmation Number"] && (
-              <InfoRow
-                label={t("label-booking-nr")}
-                value={
-                  <>
-                    <p>{data["Hotel Confirmation Number"]}</p>
-                  </>
-                }
-              ></InfoRow>
-            )}
-          </>
-        ) : (
-          <p></p>
-        )}
-      </Accordeon>
-
-      <div className="bg-gray-100 rounded-2xl my-4 p-4">
-        <h2 className="text-2xl font-bold border-b-1 pb-2 mb-4">
-          {t("section-on-site")}
-        </h2>
-        <InfoRow
-          label={t("on-site-badge")}
-          value={
+      {data.Hotel && (
+        <Accordeon title={t("section-stay")} icon={<BedDouble />}>
+          {data["Anmerkung zum Aufenthalt"] && (
+            <p>{data["Anmerkung zum Aufenthalt"]}</p>
+          )}
+          {data.Hotel?.Name ? (
             <>
-              <p>{t("badge-information")}</p>
+              <InfoRow
+                label={t("label-hotel")}
+                value={
+                  <>
+                    <>
+                      <p className="font-bold">{data.Hotel.Name}</p>
+                      <p className="">{`${data.Hotel?.Strasse} ${data.Hotel?.Hausnummer}`}</p>
+                      <p className="">{`${data.Hotel?.PLZ} ${data.Hotel?.Stadt}`}</p>
+                      <p className="">{data.Hotel?.Land}</p>
+                    </>
+                  </>
+                }
+              ></InfoRow>
+              {checkinDate && (
+                <InfoRow
+                  label={t("label-check-in")}
+                  value={
+                    <>
+                      <p>
+                        {format.dateTime(checkinDate, {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </>
+                  }
+                ></InfoRow>
+              )}
+              {checkoutDate && (
+                <InfoRow
+                  label={t("label-check-out")}
+                  value={
+                    <>
+                      <p>
+                        {format.dateTime(checkoutDate, {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </>
+                  }
+                ></InfoRow>
+              )}
+              {data["Hotel Confirmation Number"] && (
+                <InfoRow
+                  label={t("label-booking-nr")}
+                  value={
+                    <>
+                      <p>{data["Hotel Confirmation Number"]}</p>
+                    </>
+                  }
+                ></InfoRow>
+              )}
             </>
-          }
-        ></InfoRow>
-        {data.Referentenbetreuer && (
+          ) : (
+            <p></p>
+          )}
+        </Accordeon>
+      )}
+
+      {data.Referentenbetreuer && (
+        <div className="bg-gray-100 rounded-2xl my-4 p-4">
+          <h2 className="text-2xl font-bold border-b-1 pb-2 mb-4">
+            {t("section-on-site")}
+          </h2>
           <InfoRow
-            label={t("on-site-contact")}
+            label={t("on-site-badge")}
             value={
               <>
-                <div className="flex flex-col gap-1">
-                  <h5 className="font-bold">{`${data.Referentenbetreuer["First Name"]} ${data.Referentenbetreuer["Last Name"]}`}</h5>
-                  {data.Referentenbetreuer["Phone Number"] && (
-                    <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
-                      <Phone size="20" />
-                      {data.Referentenbetreuer["Phone Number"]}
-                    </div>
-                  )}
-                  {data.Referentenbetreuer["Sprachen"] && (
-                    <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
-                      <Languages size="20" />
-                      {data.Referentenbetreuer["Sprachen"].map(
-                        (sprache, index) => (
-                          <span
-                            key={index}
-                            className="bg-gray-200 rounded-2xl py-1 px-2"
-                          >
-                            {t(sprache!)}
-                          </span>
-                        ),
-                      )}
-                    </div>
-                  )}
-                </div>
+                <p>{t("badge-information")}</p>
               </>
             }
-            note={t("on-site-contact-text")}
           ></InfoRow>
-        )}
-      </div>
+          {data.Referentenbetreuer && (
+            <InfoRow
+              label={t("on-site-contact")}
+              value={
+                <>
+                  <div className="flex flex-col gap-1">
+                    <h5 className="font-bold">{`${data.Referentenbetreuer["First Name"]} ${data.Referentenbetreuer["Last Name"]}`}</h5>
+                    {data.Referentenbetreuer["Phone Number"] && (
+                      <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
+                        <Phone size="20" />
+                        {data.Referentenbetreuer["Phone Number"]}
+                      </div>
+                    )}
+                    {data.Referentenbetreuer["Sprachen"] && (
+                      <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
+                        <Languages size="20" />
+                        {data.Referentenbetreuer["Sprachen"].map(
+                          (sprache, index) => (
+                            <span
+                              key={index}
+                              className="bg-gray-200 rounded-2xl py-1 px-2"
+                            >
+                              {t(sprache!)}
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              }
+              note={t("on-site-contact-text")}
+            ></InfoRow>
+          )}
+        </div>
+      )}
 
-      <div className=" break-before-page my-4">
-        <div className="rounded-2xl  p-4 bg-gray-100">
-          <h3 className="text-2xl font-bold border-b-1 pb-2 ">
-            {t("section-schedule")}
-          </h3>
+      {ProgramData && ProgramData.length > 0 && (
+        <div className=" break-before-page my-4">
+          <div className="rounded-2xl  p-4 bg-gray-100">
+            <h3 className="text-2xl font-bold border-b-1 pb-2 ">
+              {t("section-schedule")}
+            </h3>
+          </div>
+          <p className="p-4">{t("schedule-text")}</p>
+          <div className="flex flex-col gap-4">
+            {ProgramData && <Schedule ProgramData={ProgramData} />}
+          </div>
         </div>
-        <p className="p-4">{t("schedule-text")}</p>
-        <div className="flex flex-col gap-4">
-          {ProgramData && <Schedule ProgramData={ProgramData} />}
-        </div>
-      </div>
+      )}
 
       <div className="bg-gray-100 rounded-2xl my-4 p-4 break-before-page">
         <h3 className="text-2xl font-bold border-b-1 pb-2 mb-4">

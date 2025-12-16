@@ -14,7 +14,7 @@
     "axios": "^1.12.2",
     "iron-session": "^8.0.4",
     "lucide-react": "^0.545.0",
-    "next": "15.5.4",
+    "next": "15.5.9",
     "next-intl": "^4.3.11",
     "puppeteer": "^24.24.0",
     "puppeteer-core": "^24.25.0",

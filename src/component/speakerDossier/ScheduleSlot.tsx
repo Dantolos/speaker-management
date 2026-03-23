@@ -37,8 +37,6 @@ export default function ScheduleSlot({
         ? (time_end.getTime() - time_start.getTime()) / 60000
         : undefined;
 
-  console.log(scheduleData);
-
   return (
     <div className="p-4 bg-gray-100 gap-4 flex items-stretch rounded-2xl min-h-[80px] break-inside-avoid">
       <div className="w-[100px]   flex flex-col justify-between self-stretch relative pl-3">
@@ -75,6 +73,11 @@ export default function ScheduleSlot({
                   room={scheduleData["Room"]}
                   duration={resolvedDuration}
                   language={scheduleData["Sessionsprache"]}
+                  speaker={
+                    scheduleData.Speaker && scheduleData.Speaker?.length > 0
+                      ? scheduleData.Speaker
+                      : false
+                  }
                 />
               );
             case "transfer":

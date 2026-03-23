@@ -66,6 +66,7 @@ export interface Session {
   "End (from Sessions NEW)"?: string;
   Room?: string;
   "Dauer in Minuten"?: number;
+  Speaker?: Person[] | string[];
 }
 
 export interface Reise {

@@ -69,6 +69,6 @@ export default async function programDataMapping(
     const bDate = new Date(b.start ?? b.end ?? "");
     return aDate.getTime() - bDate.getTime();
   });
-  console.log(ProgrammData);
+
   return ProgrammData;
 }

@@ -29,9 +29,6 @@ const FIELDS = {
     "Referentenbetreuer",
     "Anmerkung zum Aufenthalt",
   ],
-  // Scalar fields only — linked-record fields ("Mandate") must be omitted from
-  // the fields[] filter or Airtable throws 422. Fetching without a filter returns
-  // all columns including linked IDs automatically (see fetchOne call below).
   Kontakte: [
     "Speaker Name",
     "Last Name",
@@ -39,8 +36,6 @@ const FIELDS = {
     "Phone Number",
     "Sprachen",
   ],
-  // "Organisation / Unternehmen" is a linked-record field → omit from filter.
-  // "Position" is scalar → safe to include.
   Mandate: ["Position"],
   Organisationen: ["Name"],
   Events: [
@@ -67,6 +62,7 @@ const FIELDS = {
     "Raum (from Sessions NEW)",
     "Sessionsprache",
     "Dauer in Minuten",
+    "Speaker",
   ],
   Reisen: [
     "Reisetyp",
@@ -141,16 +137,38 @@ type RawReferentRecord = {
   Kontakte?: string[];
 };
 
+// 👇 neu: expliziter Typ für Session-Records mit Speaker-IDs
+type RawSessionRecord = {
+  id: string;
+  Sessiontypus?: string[];
+  Sessiontitel?: string;
+  "Session-Untertitel"?: string;
+  "Session Description"?: string;
+  "Session Start Time"?: string;
+  "Session End Time"?: string;
+  "Start (from Sessions NEW)"?: string;
+  "End (from Sessions NEW)"?: string;
+  Room?: string;
+  "Raum (from Sessions NEW)"?: string[];
+  Sessionsprache?: string;
+  "Dauer in Minuten"?: number;
+  Speaker?: string[]; // linked record IDs — resolved in level 2
+};
+
+// 👇 neu: Kontakt-Record wie er aus Airtable kommt
+type RawKontaktRecord = {
+  id: string;
+  "Speaker Name"?: string;
+  "Last Name"?: string;
+  "First Name"?: string;
+  "Phone Number"?: string;
+  Sprachen?: string[];
+};
+
 // ---------------------------------------------------------------------------
 // Primitive fetchers
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch one record by ID.
- * Pass `fields` to restrict returned columns (scalars only — Airtable throws
- * 422 if you include linked-record field names in the fields filter).
- * Omit `fields` to get every column including linked-record ID arrays.
- */
 async function fetchOne<T extends object>(
   table: string,
   id: string,
@@ -169,10 +187,6 @@ async function fetchOne<T extends object>(
   return { id: records[0].id, ...(records[0].fields as T) };
 }
 
-/**
- * Fetch multiple records in ONE query using an OR formula (avoids N+1).
- * Omit `fields` to return all columns (required for tables with linked records).
- */
 async function fetchMany<T extends object>(
   table: string,
   ids: string[],
@@ -244,8 +258,6 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
     backstageSlots,
     referentenbetreuer,
   ] = await Promise.all([
-    // No fields filter — "Mandate" is a linked-record field and would cause
-    // a 422 if included in fields[]. Omitting the filter returns all columns.
     root.Person?.[0]
       ? fetchOne<RawPersonRecord>("Kontakte", root.Person[0])
       : Promise.resolve(null),
@@ -262,7 +274,12 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
         )
       : Promise.resolve(null),
 
-    fetchMany("Sessions", root.Sessions ?? [], FIELDS.Sessions),
+    // 👇 explizit als RawSessionRecord typisiert — kein any mehr nötig
+    fetchMany<RawSessionRecord>(
+      "Sessions",
+      root.Sessions ?? [],
+      FIELDS.Sessions,
+    ),
     fetchMany("Reisen", root.Reisen ?? [], FIELDS.Reisen),
     fetchMany("Transfers", root.Transfers ?? [], FIELDS.Transfers),
     fetchMany(
@@ -281,47 +298,60 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
   ]);
 
   // ── Level 2: records that depend on level-1 results ───────────────────────
-  const [mandates, location, platform, assistant] = await Promise.all([
-    // No fields filter — "Organisation / Unternehmen" is a linked-record field
-    person?.Mandate?.length
-      ? fetchMany<RawMandateRecord>("Mandate", person.Mandate)
-      : Promise.resolve([]),
 
-    // Location and Plattformen are now typed as string[] on RawEventRecord — no cast needed
-    event?.Location?.[0]
-      ? fetchOne<import("@/types/speaker").Address>(
-          "Orte",
-          event.Location[0],
-          FIELDS.Orte,
-        )
-      : Promise.resolve(null),
+  // Alle einzigartigen Speaker-IDs aus allen Sessions sammeln — kein any nötig
+  // da sessions jetzt RawSessionRecord[] ist
+  const allSpeakerIds: string[] = [
+    ...new Set(sessions.flatMap((s: RawSessionRecord) => s.Speaker ?? [])),
+  ];
 
-    event?.Plattformen?.[0]
-      ? fetchOne<import("@/types/speaker").Platform>(
-          "Platforms",
-          event.Plattformen[0],
-          FIELDS.Platforms,
-        )
-      : Promise.resolve(null),
+  const [mandates, location, platform, assistant, sessionSpeakers] =
+    await Promise.all([
+      person?.Mandate?.length
+        ? fetchMany<RawMandateRecord>("Mandate", person.Mandate)
+        : Promise.resolve([]),
 
-    referentenbetreuer?.Kontakte?.[0]
-      ? fetchOne("Kontakte", referentenbetreuer.Kontakte[0], FIELDS.Kontakte)
-      : Promise.resolve(null),
-  ]);
+      event?.Location?.[0]
+        ? fetchOne<import("@/types/speaker").Address>(
+            "Orte",
+            event.Location[0],
+            FIELDS.Orte,
+          )
+        : Promise.resolve(null),
+
+      event?.Plattformen?.[0]
+        ? fetchOne<import("@/types/speaker").Platform>(
+            "Platforms",
+            event.Plattformen[0],
+            FIELDS.Platforms,
+          )
+        : Promise.resolve(null),
+
+      referentenbetreuer?.Kontakte?.[0]
+        ? fetchOne("Kontakte", referentenbetreuer.Kontakte[0], FIELDS.Kontakte)
+        : Promise.resolve(null),
+
+      // 👇 explizit als RawKontaktRecord typisiert
+      allSpeakerIds.length
+        ? fetchMany<RawKontaktRecord>(
+            "Kontakte",
+            allSpeakerIds,
+            FIELDS.Kontakte,
+          )
+        : Promise.resolve([]),
+    ]);
 
   // ── Level 3: companies linked from Mandate records ────────────────────────
   const allOrgIds = mandates.flatMap(
     (m) => m["Organisation / Unternehmen"] ?? [],
   );
 
-  // Explicitly typed so TypeScript knows the shape satisfies Organisation[]
   const companies = await fetchMany<{ Name: string }>(
     "Organisationen / Unternehmen",
     allOrgIds,
     FIELDS.Organisationen,
   );
 
-  // Explicitly typed as Mandate[] so the assemble step type-checks correctly
   const mandatesWithCompanies: import("@/types/speaker").Mandate[] =
     mandates.map((mandate) => ({
       id: mandate.id,
@@ -330,6 +360,15 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
         mandate["Organisation / Unternehmen"]?.includes(c.id),
       ),
     }));
+
+  // Speaker-Objekte den jeweiligen Sessions zuordnen — kein any nötig
+  // da session jetzt RawSessionRecord ist
+  const sessionsWithSpeakers = sessions.map((session: RawSessionRecord) => ({
+    ...session,
+    Speaker: sessionSpeakers.filter((kontakt: RawKontaktRecord) =>
+      session.Speaker?.includes(kontakt.id),
+    ),
+  }));
 
   // ── Assemble ──────────────────────────────────────────────────────────────
   return {
@@ -348,7 +387,7 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
         } satisfies import("@/types/speaker").Event)
       : undefined,
     Hotel: hotel ?? undefined,
-    Sessions: sessions,
+    Sessions: sessionsWithSpeakers,
     Reisen: reisen,
     Transfers: transfers,
     Backstage: backstageSlots,

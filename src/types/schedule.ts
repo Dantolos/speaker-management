@@ -1,3 +1,5 @@
+import { Person } from "./speaker";
+
 // Define the base ScheduleType representing one entry of the array
 export interface ScheduleItem {
   Reisetyp?: string;
@@ -33,6 +35,7 @@ export interface ScheduleItem {
   "Session Description"?: string;
   Room?: string;
   Sessionsprache?: string;
+  Speaker?: Person[];
 }
 
 // Then define ScheduleType as array of partial ScheduleItem

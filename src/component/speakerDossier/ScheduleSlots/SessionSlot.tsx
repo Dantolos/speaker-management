@@ -1,7 +1,8 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { Clock, Languages, MapPin } from "lucide-react";
+import { Clock, Languages, MapPin, MessageCircleWarning } from "lucide-react";
 import SessionInformationTag from "./SessionInformationTag";
+import { Person } from "@/types/speaker";
 
 type SessionProps = {
   title?: string;
@@ -10,6 +11,7 @@ type SessionProps = {
   room?: string;
   duration?: number;
   language?: string;
+  speaker?: Person[] | false;
 };
 
 export default function SessionSlot({
@@ -19,11 +21,11 @@ export default function SessionSlot({
   description,
   duration,
   language,
+  speaker,
 }: SessionProps) {
   const t = useTranslations("SpeakerBriefing");
-  //const format = useFormatter();
-  //const pickup_Date = pickUpTime ? new Date(pickUpTime) : undefined;
-  console.log(title);
+  const tG = useTranslations("General");
+
   return (
     <div className="flex flex-col gap-2 ">
       {title && <h4 className="font-bold text-2xl mb-0 ">{title}</h4>}
@@ -51,10 +53,33 @@ export default function SessionSlot({
         />
       )}
 
-      <h5 className="font-bold leading-0 mt-4 mb-2">
-        {t("schedule-session-end-title")}
-      </h5>
-      <p>{t("schedule-session-end-text")}</p>
+      {speaker && (
+        <div className="mt-2">
+          <p className="font-bold mb-2">{tG("speaker")}</p>
+          <div className="flex gap-2 flex-wrap">
+            {speaker.map((person, index) => (
+              <div key={index} className="py-1 px-3 rounded-2xl bg-white">
+                {`${person["First Name"]} ${person["Last Name"]}`}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {false && (
+        <>
+          <h5 className="font-bold leading-0 mt-4 mb-2">
+            {t("schedule-session-end-title")}
+          </h5>
+          <p>{t("schedule-session-end-text")}</p>
+        </>
+      )}
+      <div className="flex items-center mt-2 gap-2 border-1 border-blue-500 rounded-2xl py-1 px-3 bg-blue-200 text-blue-500">
+        <MessageCircleWarning />
+        <p>
+          Please be there <b>10 min before your appearance</b> for the mic
+          check.
+        </p>
+      </div>
     </div>
   );
 }

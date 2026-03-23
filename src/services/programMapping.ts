@@ -25,28 +25,21 @@ export default async function programDataMapping(
         ({
           ...obj,
           programtype: "session",
-        }) as DeepPartialScheduleType[number],
+        }) as unknown as DeepPartialScheduleType[number],
     );
     ProgrammData = ProgrammData.concat(sessions);
   }
 
   if (rawSpeakerData.Reisen) {
-    const reisen = rawSpeakerData.Reisen.map((obj) => ({
-      ...obj,
-      programtype: "travel",
-    }));
-    ProgrammData = ProgrammData.concat(reisen);
-  }
-
-  if (rawSpeakerData.Transfers) {
-    const transfers = rawSpeakerData.Transfers.map(
+    const reisen = rawSpeakerData.Reisen.map(
       (obj) =>
         ({
           ...obj,
-          programtype: "transfer",
+          id: Number(obj.id),
+          programtype: "travel",
         }) as DeepPartialScheduleType[number],
     );
-    ProgrammData = ProgrammData.concat(transfers);
+    ProgrammData = ProgrammData.concat(reisen);
   }
 
   if (rawSpeakerData.Backstage) {
@@ -54,6 +47,7 @@ export default async function programDataMapping(
       (obj) =>
         ({
           ...obj,
+          id: Number(obj.id),
           programtype: "backstage",
         }) as DeepPartialScheduleType[number],
     );

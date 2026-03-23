@@ -1,15 +1,5 @@
-import { notFound } from "next/navigation";
-import { getFormatter } from "next-intl/server";
-import { getTranslations } from "next-intl/server";
-import { getMultipleRecordsById } from "@/services/airtable";
-
-import { getSession, getTeamSession } from "@/utils/auth";
-import { redirect } from "next/navigation";
-import InfoRow from "@/component/speakerDossier/InfoRow";
-import Link from "next/link";
-import ButtonGeneratePdf from "@/component/speakerDossier/ButtonGeneratePdf";
-import programDataMapping from "@/services/programMapping";
-import Schedule from "@/component/speakerDossier/Schedule";
+import { notFound, redirect } from "next/navigation";
+import { getFormatter, getTranslations } from "next-intl/server";
 import {
   BedDouble,
   Calendar,
@@ -20,59 +10,81 @@ import {
   Phone,
   Spotlight,
 } from "lucide-react";
-import type { DeepPartialSpeaker } from "@/types/speaker";
+
+import { getSpeaker } from "@/services/airtable";
+import { getSession, getTeamSession } from "@/utils/auth";
+import programDataMapping from "@/services/programMapping";
+
 import Accordeon from "@/component/UI/Accordeon";
+import InfoRow from "@/component/speakerDossier/InfoRow";
 import LinkButton from "@/component/speakerDossier/LinkButton";
+import Schedule from "@/component/speakerDossier/Schedule";
+import ButtonGeneratePdf from "@/component/speakerDossier/ButtonGeneratePdf";
+import Link from "next/link";
+import type { DeepPartialSpeaker } from "@/types/speaker";
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+type Place = NonNullable<NonNullable<DeepPartialSpeaker["Event"]>["Location"]>;
+
+function AddressBlock({ place }: { place: Place | null | undefined }) {
+  if (!place) return null;
+  return (
+    <>
+      <p className="font-bold">{place.Name}</p>
+      <p>{`${place.Strasse} ${place.Hausnummer}`}</p>
+      <p>{`${place.PLZ} ${place.Stadt}`}</p>
+      <p>{place.Land}</p>
+    </>
+  );
+}
 
 interface Props {
-  params: Promise<{
-    locale: string;
-    id: string;
-  }>;
+  params: Promise<{ locale: string; id: string }>;
 }
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function toDate(value: string | undefined, fallback = new Date()): Date {
+  return value ? new Date(value) : fallback;
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default async function SpeakerPage({ params }: Props) {
   const { locale, id } = await params;
-  const format = await getFormatter({ locale });
 
-  const t = await getTranslations({ locale, namespace: "SpeakerBriefing" });
-  const tg = await getTranslations({ locale, namespace: "General" });
-
-  const session = await getSession();
-  const sessionTeam = await getTeamSession();
-
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  const [session, sessionTeam] = await Promise.all([
+    getSession(),
+    getTeamSession(),
+  ]);
   if (!session.isAuthenticated && !sessionTeam.isAuthenticated) {
     redirect(`/sign-in?redirect=/speaker/${id}`);
   }
 
-  // Direkt Airtable-Daten abfragen – ohne fetch
-  const data: DeepPartialSpeaker | null = await getMultipleRecordsById(
-    "Confirmed Contributions"!,
-    id,
-  );
+  // ── Data ──────────────────────────────────────────────────────────────────
+  const [data, t, tg, format] = await Promise.all([
+    getSpeaker(id),
+    getTranslations({ locale, namespace: "SpeakerBriefing" }),
+    getTranslations({ locale, namespace: "General" }),
+    getFormatter({ locale }),
+  ]);
 
-  const event_start = data?.Event?.["Beginn"]
-    ? new Date(data?.Event?.["Beginn"])
-    : new Date();
-  const event_end = data?.Event?.["Ende"]
-    ? new Date(data?.Event?.["Ende"])
-    : new Date();
+  if (!data) notFound();
 
-  if (!data) {
-    notFound();
-  }
   const ProgramData = await programDataMapping(data);
 
-  const date_start = data.Sessions?.[0]?.["Session Start Time"]
-    ? new Date(data.Sessions[0]["Session Start Time"])
-    : new Date();
-
-  const formattedDateStart = format.dateTime(date_start, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
+  // ── Derived values ────────────────────────────────────────────────────────
+  const eventStart = toDate(data.Event?.["Beginn"]);
+  const eventEnd = toDate(data.Event?.["Ende"]);
+  const sessionStart = toDate(data.Sessions?.[0]?.["Session Start Time"]);
   const checkinDate = data["Hotel Check-In"]
     ? new Date(data["Hotel Check-In"])
     : undefined;
@@ -82,60 +94,64 @@ export default async function SpeakerPage({ params }: Props) {
 
   const speakerName = data.Person?.["Speaker Name"] ?? "";
   const formattedFilename = speakerName
-    .trimStart()
+    .trim()
     .toLowerCase()
     .replace(/\s+/g, "-");
 
+  const location = data.Event?.Location;
+  const hotel = data.Hotel;
+  const firstSession = data.Sessions?.[0];
+
+  // ── Formatters ────────────────────────────────────────────────────────────
+  const fmtDate = (d: Date) =>
+    format.dateTime(d, { year: "numeric", month: "long", day: "numeric" });
+  const fmtDateTime = (d: Date) =>
+    format.dateTime(d, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="p-8 max-w-[800px] m-auto ">
-      <div className="mb-4 ">
+    <div className="p-8 max-w-[800px] m-auto">
+      {/* Header */}
+      <div className="mb-4">
         <h1 className="text-4xl font-bold mb-4">
-          {`${t("title")} ${data.Person?.["Speaker Name"] || "Kein Name"}`}
+          {t("title")} {speakerName || "Kein Name"}
         </h1>
       </div>
+
+      {/* Event overview */}
       <Accordeon title={t("section-event")} icon={<Info />}>
         <div className="flex flex-col gap-4">
           <h3 className="text-xl font-bold">
-            {data.Event?.Plattformen?.["Conference Name"] || "Event"}
+            {data.Event?.Plattformen?.["Conference Name"] ?? "Event"}
           </h3>
-          <div className="flex gap-[20px] w-full justify-between">
-            <div className="bg-white rounded-2xl pr-4  ">
-              <span className="font-bold bg-gray-300 px-4 py-1 mr-2 rounded-2xl">
-                {tg("from")}
-              </span>
-              <span className="">
-                {format.dateTime(event_start, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-            <div className="bg-white rounded-2xl pr-4 ">
-              <span className="font-bold bg-gray-300 px-4 py-1 mr-2 rounded-2xl">
-                {tg("till")}
-              </span>
-              <span className="">
-                {format.dateTime(event_end, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
+
+          <div className="flex gap-5 w-full justify-between">
+            {[
+              { label: tg("from"), value: fmtDateTime(eventStart) },
+              { label: tg("till"), value: fmtDateTime(eventEnd) },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-white rounded-2xl pr-4">
+                <span className="font-bold bg-gray-300 px-4 py-1 mr-2 rounded-2xl">
+                  {label}
+                </span>
+                <span>{value}</span>
+              </div>
+            ))}
           </div>
 
-          <div className="p-2 bg-white rounded-2xl">
-            <p className="font-bold">{data.Event?.Location?.Name}</p>
-            <p className="">{`${data.Event?.Location?.Strasse} ${data.Event?.Location?.Hausnummer}`}</p>
-            <p className="">{`${data.Event?.Location?.PLZ} ${data.Event?.Location?.Stadt}`}</p>
-            <p className="">{data.Event?.Location?.Land}</p>
-          </div>
-          <div className="flex gap-2  w-full">
+          {location && (
+            <div className="p-2 bg-white rounded-2xl">
+              <AddressBlock place={location} />
+            </div>
+          )}
+
+          <div className="flex gap-2 w-full">
             <LinkButton
               text={tg("website")}
               link="https://lucerne-dialogue.ch/eef"
@@ -155,231 +171,153 @@ export default async function SpeakerPage({ params }: Props) {
         </div>
       </Accordeon>
 
+      {/* Session / Gig */}
       <Accordeon title={t("section-gig")} icon={<Spotlight />}>
-        {/*{data.Sessions && data.Sessions.length > 0 && (
-          <InfoRow
-            label={t("label-art")}
-            value={
-              <>
-                {data.Sessions.map((session, index) => (
-                  <div key={index}>
-                    <p>{session.Sessionart}:</p>
-                    <p>{session.Sessiontitel}</p>
-                    <p>{session["Session-Untertitel"]}</p>
-                  </div>
-                ))}
-              </>
-            }
-          ></InfoRow>
-        )}*/}
-
         <InfoRow
           label={t("label-date")}
-          value={
-            <>
-              <p>{formattedDateStart}</p>
-            </>
-          }
-        ></InfoRow>
+          value={<p>{fmtDate(sessionStart)}</p>}
+        />
 
-        {data.Event && (
+        {location && (
           <InfoRow
             label={t("label-location")}
-            value={
-              <>
-                <p className="font-bold">{data.Event?.Location?.Name}</p>
-                <p className="">{`${data.Event.Location?.Strasse} ${data.Event.Location?.Hausnummer}`}</p>
-                <p className="">{`${data.Event.Location?.PLZ} ${data.Event.Location?.Stadt}`}</p>
-                <p className="">{data.Event?.Location?.Land}</p>
-              </>
-            }
-          ></InfoRow>
+            value={<AddressBlock place={location} />}
+          />
         )}
 
-        {data.Sessions && data.Sessions.length > 0 && (
-          <InfoRow
-            label={t("label-room")}
-            value={
-              <>
-                <p>{data.Sessions[0]?.Room}</p>
-              </>
-            }
-          ></InfoRow>
+        {firstSession?.Room && (
+          <InfoRow label={t("label-room")} value={<p>{firstSession.Room}</p>} />
         )}
-        {data.Sessions &&
-          data.Sessions?.length > 0 &&
-          data.Sessions[0]?.Sessionsprache && (
-            <InfoRow
-              label={t("label-language")}
-              value={
-                <>
-                  <p>{data.Sessions[0]?.Sessionsprache}</p>
-                </>
-              }
-            ></InfoRow>
-          )}
+
+        {firstSession?.Sessionsprache && (
+          <InfoRow
+            label={t("label-language")}
+            value={<p>{firstSession.Sessionsprache}</p>}
+          />
+        )}
       </Accordeon>
 
-      {data.Hotel && (
+      {/* Hotel */}
+      {hotel?.Name && (
         <Accordeon title={t("section-stay")} icon={<BedDouble />}>
           {data["Anmerkung zum Aufenthalt"] && (
             <p>{data["Anmerkung zum Aufenthalt"]}</p>
           )}
-          {data.Hotel?.Name ? (
-            <>
-              <InfoRow
-                label={t("label-hotel")}
-                value={
-                  <>
-                    <>
-                      <p className="font-bold">{data.Hotel.Name}</p>
-                      <p className="">{`${data.Hotel?.Strasse} ${data.Hotel?.Hausnummer}`}</p>
-                      <p className="">{`${data.Hotel?.PLZ} ${data.Hotel?.Stadt}`}</p>
-                      <p className="">{data.Hotel?.Land}</p>
-                    </>
-                  </>
-                }
-              ></InfoRow>
-              {checkinDate && (
-                <InfoRow
-                  label={t("label-check-in")}
-                  value={
-                    <>
-                      <p>
-                        {format.dateTime(checkinDate, {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </>
-                  }
-                ></InfoRow>
-              )}
-              {checkoutDate && (
-                <InfoRow
-                  label={t("label-check-out")}
-                  value={
-                    <>
-                      <p>
-                        {format.dateTime(checkoutDate, {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </>
-                  }
-                ></InfoRow>
-              )}
-              {data["Hotel Confirmation Number"] && (
-                <InfoRow
-                  label={t("label-booking-nr")}
-                  value={
-                    <>
-                      <p>{data["Hotel Confirmation Number"]}</p>
-                    </>
-                  }
-                ></InfoRow>
-              )}
-            </>
-          ) : (
-            <p></p>
+
+          <InfoRow
+            label={t("label-hotel")}
+            value={<AddressBlock place={hotel} />}
+          />
+
+          {checkinDate && (
+            <InfoRow
+              label={t("label-check-in")}
+              value={<p>{fmtDate(checkinDate)}</p>}
+            />
+          )}
+          {checkoutDate && (
+            <InfoRow
+              label={t("label-check-out")}
+              value={<p>{fmtDate(checkoutDate)}</p>}
+            />
+          )}
+          {data["Hotel Confirmation Number"] && (
+            <InfoRow
+              label={t("label-booking-nr")}
+              value={<p>{data["Hotel Confirmation Number"]}</p>}
+            />
           )}
         </Accordeon>
       )}
 
+      {/* On-site contact */}
       {data.Referentenbetreuer && (
         <div className="bg-gray-100 rounded-2xl my-4 p-4">
-          <h2 className="text-2xl font-bold border-b-1 pb-2 mb-4">
+          <h2 className="text-2xl font-bold border-b pb-2 mb-4">
             {t("section-on-site")}
           </h2>
+
           <InfoRow
             label={t("on-site-badge")}
+            value={<p>{t("badge-information")}</p>}
+          />
+
+          <InfoRow
+            label={t("on-site-contact")}
+            note={t("on-site-contact-text")}
             value={
-              <>
-                <p>{t("badge-information")}</p>
-              </>
-            }
-          ></InfoRow>
-          {data.Referentenbetreuer && (
-            <InfoRow
-              label={t("on-site-contact")}
-              value={
-                <>
-                  <div className="flex flex-col gap-1">
-                    <h5 className="font-bold">{`${data.Referentenbetreuer["First Name"]} ${data.Referentenbetreuer["Last Name"]}`}</h5>
-                    {data.Referentenbetreuer["Phone Number"] && (
-                      <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
-                        <Phone size="20" />
-                        {data.Referentenbetreuer["Phone Number"]}
-                      </div>
-                    )}
-                    {data.Referentenbetreuer["Sprachen"] && (
-                      <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
-                        <Languages size="20" />
-                        {data.Referentenbetreuer["Sprachen"].map(
-                          (sprache, index) => (
-                            <span
-                              key={index}
-                              className="bg-gray-200 rounded-2xl py-1 px-2"
-                            >
-                              {t(sprache!)}
-                            </span>
-                          ),
-                        )}
-                      </div>
-                    )}
+              <div className="flex flex-col gap-1">
+                <h5 className="font-bold">
+                  {data.Referentenbetreuer["First Name"]}{" "}
+                  {data.Referentenbetreuer["Last Name"]}
+                </h5>
+
+                {data.Referentenbetreuer["Phone Number"] && (
+                  <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
+                    <Phone size={20} />
+                    {data.Referentenbetreuer["Phone Number"]}
                   </div>
-                </>
-              }
-              note={t("on-site-contact-text")}
-            ></InfoRow>
-          )}
+                )}
+
+                {data.Referentenbetreuer["Sprachen"]?.length && (
+                  <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
+                    <Languages size={20} />
+                    {data.Referentenbetreuer["Sprachen"].map((sprache, i) => (
+                      <span
+                        key={i}
+                        className="bg-gray-200 rounded-2xl py-1 px-2"
+                      >
+                        {t(sprache!)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            }
+          />
         </div>
       )}
 
-      {ProgramData && ProgramData.length > 0 && (
-        <div className=" break-before-page my-4">
-          <div className="rounded-2xl  p-4 bg-gray-100">
-            <h3 className="text-2xl font-bold border-b-1 pb-2 ">
+      {/* Schedule */}
+      {ProgramData?.length > 0 && (
+        <div className="break-before-page my-4">
+          <div className="rounded-2xl p-4 bg-gray-100">
+            <h3 className="text-2xl font-bold border-b pb-2">
               {t("section-schedule")}
             </h3>
           </div>
           <p className="p-4">{t("schedule-text")}</p>
           <div className="flex flex-col gap-4">
-            {ProgramData && <Schedule ProgramData={ProgramData} />}
+            <Schedule ProgramData={ProgramData} />
           </div>
         </div>
       )}
 
-      <div className="bg-gray-100 rounded-2xl my-4 p-4 break-before-page">
-        <h3 className="text-2xl font-bold border-b-1 pb-2 mb-4">
-          {t("section-media")}
-        </h3>
-        <p>{t("media-text")}</p>
-      </div>
+      {/* Static sections */}
+      {[
+        { key: "section-media", textKey: "media-text" },
+        { key: "section-about", textKey: "about-text" },
+      ].map(({ key, textKey }) => (
+        <div key={key} className="bg-gray-100 rounded-2xl my-4 p-4">
+          <h3 className="text-2xl font-bold border-b pb-2 mb-4">{t(key)}</h3>
+          <p>{t(textKey)}</p>
+        </div>
+      ))}
 
+      {/* Contact */}
       <div className="bg-gray-100 rounded-2xl my-4 p-4">
-        <h3 className="text-2xl font-bold border-b-1 pb-2 mb-4">
-          {t("section-about")}
-        </h3>
-        <p>{t("about-text")}</p>
-      </div>
-
-      <div className="bg-gray-100 rounded-2xl my-4 p-4">
-        <h3 className="text-2xl font-bold border-b-1 pb-2 mb-4">
+        <h3 className="text-2xl font-bold border-b pb-2 mb-4">
           {t("section-contact")}
         </h3>
-        <div className="flex justify-between flex-wrap">
+        <div className="flex justify-between flex-wrap gap-4">
           <div className="w-[300px]">
             <p className="font-bold">
-              {data.Event?.Plattformen?.["Conference Name"] || " "}
+              {data.Event?.Plattformen?.["Conference Name"]}
             </p>
             <p>c/o LINDEN 3L AG</p>
             <p>Weyermannsstrasse 36</p>
             <p>3008 Bern</p>
-            <Link href={`mailto:hello@andermatt-dialog.ch`}>
+            <Link href="mailto:hello@andermatt-dialog.ch">
               hello@andermatt-dialog.ch
             </Link>
           </div>
@@ -388,14 +326,15 @@ export default async function SpeakerPage({ params }: Props) {
             <p>Project Manager Lucerne Dialogue</p>
             <p>Ruth Inniger</p>
             <p>Tel: +41 41 260 85 34</p>
-            <Link href={`mailto:ruth.inniger@lucerne-dialogue.ch`}>
+            <Link href="mailto:ruth.inniger@lucerne-dialogue.ch">
               ruth.inniger@lucerne-dialogue.ch
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="w-full flex items-center justify-center ">
+      {/* PDF */}
+      <div className="w-full flex items-center justify-center">
         <ButtonGeneratePdf
           filename={`${t("pdf-filename")}_${formattedFilename}`}
         />

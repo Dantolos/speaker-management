@@ -39,7 +39,7 @@ export default function Schedule({ ProgramData }: ScheduleProps) {
             <ScheduleSlot
               start={slot.start}
               end={slot.end}
-              Type={slot.programtype}
+              Type={slot.Sessiontypus}
               scheduleData={slot}
             />
           </React.Fragment>

@@ -26,7 +26,7 @@ export interface ScheduleItem {
   Event?: string[];
   Person?: string[];
   Sessiontitel?: string;
-  Sessionart?: string;
+  Sessiontypus?: string;
   "Session-Untertitel"?: string;
 
   Room?: string;

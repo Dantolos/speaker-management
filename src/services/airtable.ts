@@ -1,83 +1,218 @@
 import Airtable from "airtable";
+import { unstable_cache } from "next/cache";
 import type { DeepPartialSpeaker } from "@/types/speaker";
+
+// ---------------------------------------------------------------------------
+// Base
+// ---------------------------------------------------------------------------
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID!,
 );
 
-export async function getRecords(tableName: string, filterFormula?: string) {
-  const queryOptions = filterFormula ? { filterByFormula: filterFormula } : {};
-  const records = await base(tableName).select(queryOptions).all();
-  const output = records.map((record) => ({
-    id: record.id,
-    ...record.fields,
-  }));
+// ---------------------------------------------------------------------------
+// Field schema – single source of truth for every table's fields
+// ---------------------------------------------------------------------------
 
-  //console.log(output);
-  return output;
-}
+const FIELDS = {
+  Contributions: [
+    "Person",
+    "Sessions",
+    "Event",
+    "Hotel",
+    "Reisen",
+    "Transfers",
+    "Hotel Confirmation Number",
+    "Hotel Check-In",
+    "Hotel Check-Out",
+    "Backstage Timeslot",
+    "Referentenbetreuer",
+    "Anmerkung zum Aufenthalt",
+  ],
+  // Scalar fields only — linked-record fields ("Mandate") must be omitted from
+  // the fields[] filter or Airtable throws 422. Fetching without a filter returns
+  // all columns including linked IDs automatically (see fetchOne call below).
+  Kontakte: [
+    "Speaker Name",
+    "Last Name",
+    "First Name",
+    "Phone Number",
+    "Sprachen",
+  ],
+  // "Organisation / Unternehmen" is a linked-record field → omit from filter.
+  // "Position" is scalar → safe to include.
+  Mandate: ["Position"],
+  Organisationen: ["Name"],
+  Events: [
+    "Name",
+    "Datum",
+    "Thema",
+    "Beginn",
+    "Ende",
+    "Location",
+    "Plattformen",
+  ],
+  Platforms: ["Conference Name"],
+  Orte: ["Name", "Strasse", "Hausnummer", "PLZ", "Stadt", "Land"],
+  Sessions: [
+    "Sessiontitel",
+    "Sessiontypus",
+    "Session-Untertitel",
+    "Session Start Time",
+    "Session End Time",
+    "Room",
+    "Sessionsprache",
+    "Dauer in Minuten",
+  ],
+  Reisen: [
+    "Reisetyp",
+    "Abreisezeit",
+    "Abreiseort",
+    "Ankunftsort",
+    "Flugnummer (1. Flug)",
+    "Ankunftszeit",
+    "Flug Confirmation No",
+    "via",
+    "An/Abreise",
+    "Flugnummer (2. Flug)",
+    "Zugnummer / -verbindung",
+  ],
+  Transfers: [
+    "Pick Up Time",
+    "Drop Off Time",
+    "Bemerkung",
+    "Adresse (from Drop Off)",
+    "Adresse (from Pick Up)",
+  ],
+  BackstageTimeslots: [
+    "Title",
+    "Type",
+    "Startdate",
+    "Enddate",
+    "Notes",
+    "Description",
+    "Duration",
+  ],
+  Referentenbetreuer: ["Kontakte"],
+} as const;
 
-export async function getRecordById(tableName: string, id: string) {
-  const record = await base(tableName).find(id);
-  return {
-    id: record.id,
-    ...record.fields,
-  };
-}
+// ---------------------------------------------------------------------------
+// Raw fetch-time types (linked fields are still string[] IDs at this stage)
+// ---------------------------------------------------------------------------
+
+type RawPersonRecord = {
+  id: string;
+  "Speaker Name"?: string;
+  "Last Name"?: string;
+  "First Name"?: string;
+  "Phone Number"?: string;
+  Sprachen?: string[];
+  /** Linked record IDs — resolved in level 2 */
+  Mandate?: string[];
+};
+
+type RawEventRecord = {
+  id: string;
+  Name?: string;
+  Datum?: string;
+  Thema?: string;
+  Beginn?: string;
+  Ende?: string;
+  /** Linked record IDs — resolved in level 2 */
+  Location?: string[];
+  /** Linked record IDs — resolved in level 2 */
+  Plattformen?: string[];
+};
+
+type RawMandateRecord = {
+  id: string;
+  Position?: string;
+  /** Linked record IDs — resolved in level 3 */
+  "Organisation / Unternehmen"?: string[];
+};
+
+type RawReferentRecord = {
+  id: string;
+  /** Linked record IDs — resolved in level 2 */
+  Kontakte?: string[];
+};
+
+// ---------------------------------------------------------------------------
+// Primitive fetchers
+// ---------------------------------------------------------------------------
 
 /**
- * Generic helper to fetch single Airtable record by ID with selected fields.
+ * Fetch one record by ID.
+ * Pass `fields` to restrict returned columns (scalars only — Airtable throws
+ * 422 if you include linked-record field names in the fields filter).
+ * Omit `fields` to get every column including linked-record ID arrays.
  */
-async function fetchSingleRecord<T>(
+async function fetchOne<T extends object>(
   table: string,
   id: string,
-  fields: (keyof T)[],
+  fields?: readonly string[],
 ): Promise<(T & { id: string }) | null> {
-  const records = await base(table)
-    .select({
-      filterByFormula: `RECORD_ID()='${id}'`,
-      fields: fields as string[],
-      maxRecords: 1,
-    })
-    .firstPage();
+  const options: Record<string, unknown> = {
+    filterByFormula: `RECORD_ID()='${id}'`,
+    maxRecords: 1,
+  };
+  if (fields && fields.length > 0) {
+    options.fields = fields as string[];
+  }
 
-  if (records.length === 0) return null;
+  const records = await base(table).select(options).firstPage();
+  if (!records.length) return null;
   return { id: records[0].id, ...(records[0].fields as T) };
 }
 
 /**
- * Generic helper to fetch multiple Airtable records by IDs with selected fields.
+ * Fetch multiple records in ONE query using an OR formula (avoids N+1).
+ * Omit `fields` to return all columns (required for tables with linked records).
  */
-async function fetchMultipleRecords<T extends object>(
+async function fetchMany<T extends object>(
   table: string,
   ids: string[],
-  fields: (keyof T)[],
+  fields?: readonly string[],
 ): Promise<Array<T & { id: string }>> {
-  // Map -> Promise<(T & {id: string}) | null>
-  const recordPromises = ids.map((id) =>
-    fetchSingleRecord<T>(table, id, fields),
-  );
-  // Await all Promises
-  const resolved = await Promise.all(recordPromises);
+  if (!ids.length) return [];
 
-  // Create a non-throwing custom type guard function
-  function isNotNull<R>(value: R | null): value is R {
-    return value !== null;
+  const formula =
+    ids.length === 1
+      ? `RECORD_ID()='${ids[0]}'`
+      : `OR(${ids.map((id) => `RECORD_ID()='${id}'`).join(",")})`;
+
+  const options: Record<string, unknown> = { filterByFormula: formula };
+  if (fields && fields.length > 0) {
+    options.fields = fields as string[];
   }
 
-  // Filter nulls with this guard
-  return resolved.filter(isNotNull);
+  const records = await base(table).select(options).all();
+  return records.map((r) => ({ id: r.id, ...(r.fields as T) }));
 }
 
-/**
- * Fetch detailed speaker data with all linked records resolved.
- */
-export async function getMultipleRecordsById(
-  tableName: string,
-  id: string,
-): Promise<DeepPartialSpeaker | null> {
-  // Load main record with linking fields
-  const mainRecord = await fetchSingleRecord<{
+// ---------------------------------------------------------------------------
+// Public generic helpers (kept for other use-cases in the app)
+// ---------------------------------------------------------------------------
+
+export async function getRecords(tableName: string, filterFormula?: string) {
+  const records = await base(tableName)
+    .select(filterFormula ? { filterByFormula: filterFormula } : {})
+    .all();
+  return records.map((r) => ({ id: r.id, ...r.fields }));
+}
+
+export async function getRecordById(tableName: string, id: string) {
+  const record = await base(tableName).find(id);
+  return { id: record.id, ...record.fields };
+}
+
+// ---------------------------------------------------------------------------
+// Speaker dossier – fully resolved, cached
+// ---------------------------------------------------------------------------
+
+async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
+  // ── Level 0: root record ──────────────────────────────────────────────────
+  const root = await fetchOne<{
     Person?: string[];
     Sessions?: string[];
     Event?: string[];
@@ -89,201 +224,140 @@ export async function getMultipleRecordsById(
     "Hotel Check-Out"?: string;
     "Backstage Timeslot"?: string[];
     Referentenbetreuer?: string[];
-  }>(tableName, id, [
-    "Person",
-    "Sessions",
-    "Event",
-    "Hotel",
-    "Hotel Confirmation Number",
-    "Hotel Check-In",
-    "Hotel Check-Out",
-    "Reisen",
-    "Transfers",
-    "Backstage Timeslot",
-    "Referentenbetreuer",
+    "Anmerkung zum Aufenthalt"?: string;
+  }>("Confirmed Contributions", id, FIELDS.Contributions);
+
+  if (!root) return null;
+
+  // ── Level 1: all linked records fetched in parallel ───────────────────────
+  const [
+    person,
+    event,
+    hotel,
+    sessions,
+    reisen,
+    transfers,
+    backstageSlots,
+    referentenbetreuer,
+  ] = await Promise.all([
+    // No fields filter — "Mandate" is a linked-record field and would cause
+    // a 422 if included in fields[]. Omitting the filter returns all columns.
+    root.Person?.[0]
+      ? fetchOne<RawPersonRecord>("Kontakte", root.Person[0])
+      : Promise.resolve(null),
+
+    root.Event?.[0]
+      ? fetchOne<RawEventRecord>("Events", root.Event[0], FIELDS.Events)
+      : Promise.resolve(null),
+
+    root.Hotel?.[0]
+      ? fetchOne<import("@/types/speaker").Address>(
+          "Orte",
+          root.Hotel[0],
+          FIELDS.Orte,
+        )
+      : Promise.resolve(null),
+
+    fetchMany("Sessions", root.Sessions ?? [], FIELDS.Sessions),
+    fetchMany("Reisen", root.Reisen ?? [], FIELDS.Reisen),
+    fetchMany("Transfers", root.Transfers ?? [], FIELDS.Transfers),
+    fetchMany(
+      "Backstage Timeslots",
+      root["Backstage Timeslot"] ?? [],
+      FIELDS.BackstageTimeslots,
+    ),
+
+    root.Referentenbetreuer?.[0]
+      ? fetchOne<RawReferentRecord>(
+          "Referentenbetreuer",
+          root.Referentenbetreuer[0],
+          FIELDS.Referentenbetreuer,
+        )
+      : Promise.resolve(null),
   ]);
 
-  if (!mainRecord) return null;
+  // ── Level 2: records that depend on level-1 results ───────────────────────
+  const [mandates, location, platform, assistant] = await Promise.all([
+    // No fields filter — "Organisation / Unternehmen" is a linked-record field
+    person?.Mandate?.length
+      ? fetchMany<RawMandateRecord>("Mandate", person.Mandate)
+      : Promise.resolve([]),
 
-  // Fetch Person
-  const person =
-    mainRecord.Person && mainRecord.Person.length > 0
-      ? await fetchSingleRecord("Kontakte", mainRecord.Person[0], [
-          "Speaker Name",
-          "Last Name",
-          "First Name",
-          "Position",
-          "Organisation / Unternehmen",
-        ])
-      : null;
-
-  // Fetch Companies related to Person
-  const companies =
-    person?.["Organisation / Unternehmen"] &&
-    person["Organisation / Unternehmen"].length > 0
-      ? await fetchMultipleRecords(
-          "Organisationen / Unternehmen",
-          person["Organisation / Unternehmen"],
-          ["Name"],
+    // Location and Plattformen are now typed as string[] on RawEventRecord — no cast needed
+    event?.Location?.[0]
+      ? fetchOne<import("@/types/speaker").Address>(
+          "Orte",
+          event.Location[0],
+          FIELDS.Orte,
         )
-      : [];
+      : Promise.resolve(null),
 
-  // Fetch Event
-  const event =
-    mainRecord.Event && mainRecord.Event.length > 0
-      ? await fetchSingleRecord("Events", mainRecord.Event[0], [
-          "Name",
-          "Datum",
-          "Thema",
-          "Beginn",
-          "Ende",
-          "Location",
-          "Plattformen",
-        ])
-      : null;
-
-  // Platform (from Event)
-  const platform =
-    event?.Plattformen && event.Plattformen.length > 0
-      ? await fetchSingleRecord("Platforms", event.Plattformen[0], [
-          "Conference Name",
-        ])
-      : null;
-
-  // Location (from Event)
-  const location =
-    event?.Location && event.Location.length > 0
-      ? await fetchSingleRecord("Orte", event.Location[0], [
-          "Name",
-          "Strasse",
-          "Hausnummer",
-          "PLZ",
-          "Stadt",
-          "Land",
-        ])
-      : null;
-
-  // Hotel Details
-  const hotel =
-    mainRecord.Hotel && mainRecord.Hotel.length > 0
-      ? await fetchSingleRecord("Orte", mainRecord.Hotel[0], [
-          "Name",
-          "Strasse",
-          "Hausnummer",
-          "PLZ",
-          "Stadt",
-          "Land",
-        ])
-      : null;
-
-  // Sessions
-  const sessions =
-    mainRecord.Sessions && mainRecord.Sessions.length > 0
-      ? await fetchMultipleRecords("Sessions", mainRecord.Sessions, [
-          "Sessiontitel",
-          "Sessionart",
-          "Session-Untertitel",
-          "Session Start Time",
-          "Session End Time",
-          "Room",
-          "Sessionsprache",
-          "Dauer in Minuten",
-        ])
-      : [];
-
-  // Reisen (journey)
-  const reisen =
-    mainRecord.Reisen && mainRecord.Reisen.length > 0
-      ? await fetchMultipleRecords("Reisen", mainRecord.Reisen, [
-          "Reisetyp",
-          "Abreisezeit",
-          "Abreiseort",
-          "Ankunftsort",
-          "Flugnummer (1. Flug)",
-          "Ankunftszeit",
-          "Flug Confirmation No",
-          "via",
-          "An/Abreise",
-          "Flugnummer (2. Flug)",
-          "Zugnummer / -verbindung",
-        ])
-      : [];
-
-  // Transfers
-  const transfers =
-    mainRecord.Transfers && mainRecord.Transfers.length > 0
-      ? await fetchMultipleRecords("Transfers", mainRecord.Transfers, [
-          "Pick Up Time",
-          "Drop Off Time",
-          "Bemerkung",
-          "Adresse (from Drop Off)",
-          "Adresse (from Pick Up)",
-        ])
-      : [];
-
-  // Backstage Timeslots
-  const backstageSlots =
-    mainRecord["Backstage Timeslot"] &&
-    mainRecord["Backstage Timeslot"].length > 0
-      ? await fetchMultipleRecords(
-          "Backstage Timeslots",
-          mainRecord["Backstage Timeslot"],
-          [
-            "Title",
-            "Type",
-            "Startdate",
-            "Enddate",
-            "Notes",
-            "Description",
-            "Duration",
-          ],
+    event?.Plattformen?.[0]
+      ? fetchOne<import("@/types/speaker").Platform>(
+          "Platforms",
+          event.Plattformen[0],
+          FIELDS.Platforms,
         )
-      : [];
+      : Promise.resolve(null),
 
-  // Referentenbetreuer (assistant)
-  const referentenbetreuer =
-    mainRecord.Referentenbetreuer && mainRecord.Referentenbetreuer.length > 0
-      ? await fetchSingleRecord(
-          "Referentenbetreuer",
-          mainRecord.Referentenbetreuer[0],
-          ["Kontakte"],
-        )
-      : undefined;
-  const assistant =
-    referentenbetreuer?.Kontakte && referentenbetreuer.Kontakte.length > 0
-      ? await fetchSingleRecord("Kontakte", referentenbetreuer.Kontakte[0], [
-          "Phone Number",
-          "Last Name",
-          "First Name",
-          "Sprachen",
-        ])
-      : undefined;
+    referentenbetreuer?.Kontakte?.[0]
+      ? fetchOne("Kontakte", referentenbetreuer.Kontakte[0], FIELDS.Kontakte)
+      : Promise.resolve(null),
+  ]);
 
-  // Return combined data matching DeepPartialSpeaker
+  // ── Level 3: companies linked from Mandate records ────────────────────────
+  const allOrgIds = mandates.flatMap(
+    (m) => m["Organisation / Unternehmen"] ?? [],
+  );
+
+  // Explicitly typed so TypeScript knows the shape satisfies Organisation[]
+  const companies = await fetchMany<{ Name: string }>(
+    "Organisationen / Unternehmen",
+    allOrgIds,
+    FIELDS.Organisationen,
+  );
+
+  // Explicitly typed as Mandate[] so the assemble step type-checks correctly
+  const mandatesWithCompanies: import("@/types/speaker").Mandate[] =
+    mandates.map((mandate) => ({
+      id: mandate.id,
+      Position: mandate.Position,
+      "Organisation / Unternehmen": companies.filter((c) =>
+        mandate["Organisation / Unternehmen"]?.includes(c.id),
+      ),
+    }));
+
+  // ── Assemble ──────────────────────────────────────────────────────────────
   return {
-    ...mainRecord,
-    Person: person
-      ? {
-          ...person,
-          "Organisation / Unternehmen": companies,
-        }
-      : undefined,
+    ...root,
+    Person: person ? { ...person, Mandate: mandatesWithCompanies } : undefined,
     Event: event
-      ? {
-          ...event,
-          Plattformen: platform ?? undefined,
+      ? ({
+          id: event.id,
+          Name: event.Name,
+          Datum: event.Datum,
+          Thema: event.Thema,
+          Beginn: event.Beginn,
+          Ende: event.Ende,
           Location: location ?? undefined,
-        }
+          Plattformen: platform ?? undefined,
+        } satisfies import("@/types/speaker").Event)
       : undefined,
     Hotel: hotel ?? undefined,
-    Referentenbetreuer: assistant
-      ? {
-          ...assistant,
-        }
-      : undefined,
     Sessions: sessions,
     Reisen: reisen,
     Transfers: transfers,
     Backstage: backstageSlots,
+    Referentenbetreuer: assistant ?? undefined,
   };
 }
+
+/** Cached version – revalidates every 60 seconds. */
+export const getSpeaker = (id: string) =>
+  unstable_cache(() => _getSpeaker(id), [`speaker-${id}`], {
+    revalidate: 60,
+  })();
+
+/** Backward-compatible alias so existing imports don't break. */
+export const getMultipleRecordsById = (_table: string, id: string) =>
+  getSpeaker(id);

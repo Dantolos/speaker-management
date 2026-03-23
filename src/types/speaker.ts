@@ -1,109 +1,149 @@
-// types/speaker.ts
+// ---------------------------------------------------------------------------
+// Primitives
+// ---------------------------------------------------------------------------
 
-// DeepPartial utility type to recursively make fields optional
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};
+export interface Address {
+  Name?: string;
+  Strasse?: string;
+  Hausnummer?: string;
+  PLZ?: string;
+  Stadt?: string;
+  Land?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Linked record shapes
+// ---------------------------------------------------------------------------
+
+export interface Organisation {
+  id: string;
+  Name: string;
+}
+
+/** A single mandate entry: one role at one organisation. */
+export interface Mandate {
+  id: string;
+  Position?: string;
+  "Organisation / Unternehmen"?: Organisation[];
+}
+
+export interface Person {
+  id: string;
+  "Speaker Name"?: string;
+  "First Name"?: string;
+  "Last Name"?: string;
+  "Phone Number"?: string;
+  Sprachen?: string[];
+  /** Replaces the old flat Position + Organisation fields. */
+  Mandate?: Mandate[];
+}
+
+export interface Platform {
+  id: string;
+  "Conference Name"?: string;
+}
+
+export interface Event {
+  id: string;
+  Name?: string;
+  Datum?: string;
+  Thema?: string;
+  Beginn?: string;
+  Ende?: string;
+  Location?: Address;
+  Plattformen?: Platform;
+}
+
+export interface Session {
+  id: string;
+  Sessiontitel?: string;
+  "Session-Untertitel"?: string;
+  Sessiontypus?: string[];
+  Sessionsprache?: string;
+  "Session Start Time"?: string;
+  "Session End Time"?: string;
+  Room?: string;
+  "Dauer in Minuten"?: number;
+}
+
+export interface Reise {
+  id: string;
+  Reisetyp?: string;
+  "An/Abreise"?: string;
+  Abreisezeit?: string;
+  Abreiseort?: string;
+  Ankunftszeit?: string;
+  Ankunftsort?: string;
+  "Flugnummer (1. Flug)"?: string;
+  "Flugnummer (2. Flug)"?: string;
+  "Flug Confirmation No"?: string;
+  "Zugnummer / -verbindung"?: string;
+  via?: string;
+}
+
+export interface Transfer {
+  id: string;
+  "Pick Up Time"?: string;
+  "Drop Off Time"?: string;
+  Bemerkung?: string;
+  "Adresse (from Pick Up)"?: string | string[];
+  "Adresse (from Drop Off)"?: string | string[];
+}
+
+export interface BackstageSlot {
+  id: string;
+  Title?: string;
+  Type?: string;
+  Startdate?: string;
+  Enddate?: string;
+  Duration?: number;
+  Notes?: string;
+  Description?: string;
+}
+
+export interface Referentenbetreuer {
+  id: string;
+  "First Name"?: string;
+  "Last Name"?: string;
+  "Phone Number"?: string;
+  Sprachen?: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Root record
+// ---------------------------------------------------------------------------
 
 export interface Speaker {
-  id?: string;
-  Name?: string;
-  Person?: {
-    "Speaker Name": string;
-    "Last Name": string;
-    "First Name": string;
-    Position: string;
-    "Organisation / Unternehmen": Array<{
-      Name: string;
-    }>;
-  };
-  Event?:
-    | {
-        Name: string | undefined;
-        Plattformen:
-          | {
-              "Conference Name": string | undefined;
-            }
-          | undefined;
-        Datum: string;
-        Thema: string;
-        Ende: string;
-        Beginn: string;
-        Location:
-          | {
-              Name?: string;
-              Strasse?: string;
-              Hausnummer?: number;
-              PLZ?: number;
-              Stadt?: string;
-              Land?: string;
-            }
-          | undefined;
-      }
-    | undefined;
-  "Anmerkung zum Aufenthalt"?: string;
-  Hotel?: {
-    Name: string;
-    Strasse: string;
-    Hausnummer: number;
-    PLZ: number;
-    Stadt: string;
-    Land: string;
-  };
+  id: string;
+  Person?: Person;
+  Name: string;
+  Event?: Event;
+  Hotel?: Address;
   "Hotel Check-In"?: string;
   "Hotel Check-Out"?: string;
   "Hotel Confirmation Number"?: string;
-  Referentenbetreuer?: {
-    "Phone Number": string;
-    Sprachen?: string[];
-    "Last Name": string;
-    "First Name": string;
-  };
-  Sessions?: Array<{
-    Room: string;
-    "Session Start Time": string;
-    "Session End Time": string;
-    "Dauer in Minuten": number;
-    Sessiontitel?: string;
-    "Session-Untertitel"?: string;
-    Sessionart?: string[];
-    Sessionsprache?: string;
-  }>;
-  Reisen?: Array<{
-    Reisetyp: string;
-    Abreiseort: string;
-    Ankunftsort: string;
-    "Flugnummer (1. Flug)"?: string;
-    Ankunftszeit: string;
-    "Flug Confirmation No"?: string;
-    Abreisezeit: string;
-    via?: string;
-    "An/Abreise": string;
-    "Flugnummer (2. Flug)"?: string;
-    "Zugnummer / -verbindung"?: string;
-  }>;
-  Transfers?: Array<{
-    "Pick Up Time": string;
-    "Drop Off Time": string;
-    Bemerkung?: string;
-    "Adresse (from Drop Off)"?: string[] | string;
-    "Adresse (from Pick Up)"?: string[] | string;
-  }>;
-  "Backstage Timeslot"?: string[];
-  Backstage?: Array<{
-    id: string | number;
-    Title: string;
-    Type: string;
-    Startdate: string;
-    Enddate: string;
-    Notes?: string;
-    Description?: string;
-    "Confirmed Contributions"?: string[];
-    Duration: number;
-    Event?: string[];
-    Person?: string[];
-  }>;
+  "Anmerkung zum Aufenthalt"?: string;
+  Sessions?: Session[];
+  Reisen?: Reise[];
+  Transfers?: Transfer[];
+  Backstage?: BackstageSlot[];
+  Referentenbetreuer?: Referentenbetreuer;
+  // Lookup field added directly in Airtable — returns an array of strings
+  "Event Name"?: string[];
+  "Speaker Name"?: string;
 }
 
-// Export DeepPartialSpeaker for convenience
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+/** Recursively makes all fields optional — used for partial API responses. */
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends (infer U)[]
+    ? DeepPartial<U>[]
+    : T[P] extends object
+      ? DeepPartial<T[P]>
+      : T[P];
+};
+
 export type DeepPartialSpeaker = DeepPartial<Speaker>;

@@ -64,6 +64,7 @@ const FIELDS = {
     "Start (from Sessions NEW)",
     "End (from Sessions NEW)",
     "Room",
+    "Raum (from Sessions NEW)",
     "Sessionsprache",
     "Dauer in Minuten",
   ],

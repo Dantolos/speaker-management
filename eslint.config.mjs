@@ -9,8 +9,14 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
+// Generate flat configs for 'next' and 'next/core-web-vitals' and 'next/typescript'
+const extendConfigs = [
+  ...compat.config({ extends: ["next"] }),
+  ...compat.config({ extends: ["next/core-web-vitals", "next/typescript"] }),
+];
+
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...extendConfigs,
   {
     ignores: [
       "node_modules/**",

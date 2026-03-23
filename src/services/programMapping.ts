@@ -6,8 +6,8 @@ export default async function programDataMapping(
 ): Promise<DeepPartialScheduleType> {
   // console.log(rawSpeakerData);
   const keyMap: { [key: string]: string } = {
-    "Session Start Time": "start", // Sessions
-    "Session End Time": "end",
+    "Start (from Sessions NEW)": "start", // Sessions
+    "End (from Sessions NEW)": "end",
     Abreisezeit: "start", // Reisen
     Ankunftszeit: "end",
     "Pick Up Time": "start", // Transfers
@@ -24,7 +24,7 @@ export default async function programDataMapping(
       (obj) =>
         ({
           ...obj,
-          programtype: "session",
+          Sessiontypus: "session",
         }) as unknown as DeepPartialScheduleType[number],
     );
     ProgrammData = ProgrammData.concat(sessions);
@@ -36,7 +36,7 @@ export default async function programDataMapping(
         ({
           ...obj,
           id: Number(obj.id),
-          programtype: "travel",
+          Sessiontypus: "travel",
         }) as DeepPartialScheduleType[number],
     );
     ProgrammData = ProgrammData.concat(reisen);
@@ -48,7 +48,7 @@ export default async function programDataMapping(
         ({
           ...obj,
           id: Number(obj.id),
-          programtype: "backstage",
+          Sessiontypus: "backstage",
         }) as DeepPartialScheduleType[number],
     );
     ProgrammData = ProgrammData.concat(backstageSlots);
@@ -69,6 +69,6 @@ export default async function programDataMapping(
     const bDate = new Date(b.start ?? b.end ?? "");
     return aDate.getTime() - bDate.getTime();
   });
-
+  console.log(ProgrammData);
   return ProgrammData;
 }

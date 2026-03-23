@@ -4,25 +4,31 @@ import { Clock, Languages, MapPin } from "lucide-react";
 import SessionInformationTag from "./SessionInformationTag";
 
 type SessionProps = {
+  title?: string;
   subtitle?: string;
+  description?: string;
   room?: string;
   duration?: number;
   language?: string;
 };
 
 export default function SessionSlot({
+  title,
   subtitle,
   room,
+  description,
   duration,
   language,
 }: SessionProps) {
   const t = useTranslations("SpeakerBriefing");
   //const format = useFormatter();
   //const pickup_Date = pickUpTime ? new Date(pickUpTime) : undefined;
-
+  console.log(title);
   return (
     <div className="flex flex-col gap-2 ">
-      {subtitle && <h6 className="font-bold text-2xl">{subtitle}</h6>}
+      {title && <h4 className="font-bold text-2xl mb-0 ">{title}</h4>}
+      {subtitle && <h6 className="font-bold text-lg leading-2">{subtitle}</h6>}
+      {description && <p>{description}</p>}
       {room && (
         <SessionInformationTag
           label={t("label-room")}

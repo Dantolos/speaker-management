@@ -9,7 +9,7 @@ interface L3AccoredonProps {
 }
 
 export default function Accordeon({ title, icon, children }: L3AccoredonProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
   const [maxHeight, setMaxHeight] = useState<string | undefined>("0px");
 

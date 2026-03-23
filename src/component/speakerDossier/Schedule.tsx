@@ -11,7 +11,7 @@ type ScheduleProps = {
 export default function Schedule({ ProgramData }: ScheduleProps) {
   const format = useFormatter();
   let lastDate: string | null = null;
-
+  console.log(ProgramData);
   return (
     <>
       {ProgramData.map((slot, index) => {

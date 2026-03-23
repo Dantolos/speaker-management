@@ -62,6 +62,8 @@ export interface Session {
   Sessionsprache?: string;
   "Session Start Time"?: string;
   "Session End Time"?: string;
+  "Start (from Sessions NEW)"?: string;
+  "End (from Sessions NEW)"?: string;
   Room?: string;
   "Dauer in Minuten"?: number;
 }

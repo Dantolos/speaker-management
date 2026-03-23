@@ -25,10 +25,12 @@ export interface ScheduleItem {
   Duration?: number;
   Event?: string[];
   Person?: string[];
-  Sessiontitel?: string;
   Sessiontypus?: string;
+  Sessiontitel?: string;
+  "Start (from Sessions NEW)"?: string;
+  "End (from Sessions NEW)"?: string;
   "Session-Untertitel"?: string;
-
+  "Session Description"?: string;
   Room?: string;
   Sessionsprache?: string;
 }

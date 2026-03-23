@@ -26,14 +26,18 @@ export default function ScheduleSlot({
   const format = useFormatter();
 
   const time_start = start ? new Date(start) : undefined;
-  let time_end = end ? new Date(end) : undefined;
-  if (Duration !== undefined && start) {
-    const durationMinutes =
-      typeof Duration === "string" ? Number(Duration) : Duration;
-    if (!isNaN(durationMinutes)) {
-      time_end = new Date(new Date(start).getTime() + durationMinutes * 60000);
-    }
-  }
+  const time_end = end ? new Date(end) : undefined;
+
+  const resolvedDuration =
+    Duration !== undefined
+      ? typeof Duration === "string"
+        ? Number(Duration)
+        : Duration
+      : time_start && time_end
+        ? (time_end.getTime() - time_start.getTime()) / 60000
+        : undefined;
+
+  console.log(scheduleData);
 
   return (
     <div className="p-4 bg-gray-100 gap-4 flex items-stretch rounded-2xl min-h-[80px] break-inside-avoid">
@@ -65,9 +69,11 @@ export default function ScheduleSlot({
             case "session":
               return (
                 <SessionSlot
+                  title={scheduleData["Sessiontitel"]}
                   subtitle={scheduleData["Session-Untertitel"]}
+                  description={scheduleData["Session Description"]}
                   room={scheduleData["Room"]}
-                  duration={scheduleData.Duration}
+                  duration={resolvedDuration}
                   language={scheduleData["Sessionsprache"]}
                 />
               );

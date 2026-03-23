@@ -83,8 +83,10 @@ export default async function SpeakerPage({ params }: Props) {
 
   // ── Derived values ────────────────────────────────────────────────────────
   const eventStart = toDate(data.Event?.["Beginn"]);
-  const eventEnd = toDate(data.Event?.["Ende"]);
-  const sessionStart = toDate(data.Sessions?.[0]?.["Session Start Time"]);
+  const eventEnd = data.Event?.["Ende"] ? toDate(data.Event?.["Ende"]) : null;
+  const sessionStart = data.Sessions?.[0]?.["Start (from Sessions NEW)"]
+    ? toDate(data.Sessions?.[0]?.["Start (from Sessions NEW)"])
+    : null;
   const checkinDate = data["Hotel Check-In"]
     ? new Date(data["Hotel Check-In"])
     : undefined;
@@ -134,15 +136,20 @@ export default async function SpeakerPage({ params }: Props) {
           <div className="flex gap-5 w-full justify-between">
             {[
               { label: tg("from"), value: fmtDateTime(eventStart) },
-              { label: tg("till"), value: fmtDateTime(eventEnd) },
-            ].map(({ label, value }) => (
-              <div key={label} className="bg-white rounded-2xl pr-4">
-                <span className="font-bold bg-gray-300 px-4 py-1 mr-2 rounded-2xl">
-                  {label}
-                </span>
-                <span>{value}</span>
-              </div>
-            ))}
+              {
+                label: tg("till"),
+                value: eventEnd ? fmtDateTime(eventEnd) : null,
+              },
+            ]
+              .filter(({ value }) => value != null)
+              .map(({ label, value }) => (
+                <div key={label} className="bg-white rounded-2xl pr-4">
+                  <span className="font-bold bg-gray-300 px-4 py-1 mr-2 rounded-2xl">
+                    {label}
+                  </span>
+                  <span>{value}</span>
+                </div>
+              ))}
           </div>
 
           {location && (
@@ -154,17 +161,17 @@ export default async function SpeakerPage({ params }: Props) {
           <div className="flex gap-2 w-full">
             <LinkButton
               text={tg("website")}
-              link="https://lucerne-dialogue.ch/eef"
+              link="https://startupdays.ch/"
               icon={<Globe size={30} />}
             />
             <LinkButton
               text={tg("speaker")}
-              link="https://lucerne-dialogue.ch/eef/2025/programm-2025"
+              link="https://sud26.startupdays.ch/components/52926"
               icon={<Mic size={30} />}
             />
             <LinkButton
               text={tg("program")}
-              link="https://lucerne-dialogue.ch/eef/2025/speaker-2025"
+              link="https://sud26.startupdays.ch/components/52339"
               icon={<Calendar size={30} />}
             />
           </div>
@@ -173,10 +180,12 @@ export default async function SpeakerPage({ params }: Props) {
 
       {/* Session / Gig */}
       <Accordeon title={t("section-gig")} icon={<Spotlight />}>
-        <InfoRow
-          label={t("label-date")}
-          value={<p>{fmtDate(sessionStart)}</p>}
-        />
+        {sessionStart && (
+          <InfoRow
+            label={t("label-date")}
+            value={<p>{fmtDate(sessionStart)}</p>}
+          />
+        )}
 
         {location && (
           <InfoRow
@@ -318,16 +327,16 @@ export default async function SpeakerPage({ params }: Props) {
             <p>Weyermannsstrasse 36</p>
             <p>3008 Bern</p>
             <Link href="mailto:hello@andermatt-dialog.ch">
-              hello@andermatt-dialog.ch
+              hello@startupdays.ch
             </Link>
           </div>
           <div className="w-[300px]">
             <p className="font-bold">{t("contact-person")}</p>
-            <p>Project Manager Lucerne Dialogue</p>
-            <p>Ruth Inniger</p>
+            <p>Senior Project Manager</p>
+            <p>Alexandra Lehmann</p>
             <p>Tel: +41 41 260 85 34</p>
             <Link href="mailto:ruth.inniger@lucerne-dialogue.ch">
-              ruth.inniger@lucerne-dialogue.ch
+              ale@livelearninglabs.ch
             </Link>
           </div>
         </div>

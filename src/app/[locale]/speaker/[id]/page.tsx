@@ -371,7 +371,7 @@ export default async function SpeakerPage({ params }: Props) {
           </div>
           <div className="  my-2">
             <LinkButton
-              text="zur Platform"
+              text="Platform"
               link="https://sud25.startupdays.ch/login?next=/promotion-code"
               icon={<Globe />}
             ></LinkButton>

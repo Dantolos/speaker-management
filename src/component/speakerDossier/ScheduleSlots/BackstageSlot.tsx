@@ -26,7 +26,7 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
               </div>
             </div>
 
-            <p>{t("schedule-masking-information")}</p>
+            <p>{backstageData.Description}</p>
             {backstageData.Notes && (
               <div className=" bg-white p-2 rounded-2xl">
                 <p className="text-gray-400">{t("schedule-note")}:</p>

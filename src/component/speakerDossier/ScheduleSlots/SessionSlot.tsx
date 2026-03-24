@@ -58,7 +58,7 @@ export default function SessionSlot({
           <p className="font-bold mb-2">{tG("speaker")}</p>
           <div className="flex gap-2 flex-wrap">
             {speaker.map((person, index) => (
-              <div key={index} className="py-1 px-3 rounded-2xl bg-white">
+              <div key={index} className="py-1 px-3 rounded-2xl bg-primary/10">
                 {`${person["First Name"]} ${person["Last Name"]}`}
               </div>
             ))}
@@ -73,7 +73,7 @@ export default function SessionSlot({
           <p>{t("schedule-session-end-text")}</p>
         </>
       )}
-      <div className="flex items-center mt-2 gap-2 border-1 border-blue-500 rounded-2xl py-1 px-3 bg-blue-200 text-blue-500">
+      <div className="flex items-center mt-2 gap-2 border-1 border-secondary rounded-2xl py-3 px-3 bg-secondary/5 text-secondary">
         <MessageCircleWarning />
         <p>
           Please be there <b>10 min before your appearance</b> for the mic

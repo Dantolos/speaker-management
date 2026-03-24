@@ -22,6 +22,8 @@ export default async function LocaleLayout({ children, params }: Props) {
   setRequestLocale(locale);
 
   return (
-    <NextIntlClientProvider locale={locale}>{children}</NextIntlClientProvider>
+    <NextIntlClientProvider locale={locale}>
+      <div className="bg-primary/10">{children}</div>
+    </NextIntlClientProvider>
   );
 }

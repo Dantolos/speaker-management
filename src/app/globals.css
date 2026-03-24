@@ -3,13 +3,23 @@
 :root {
     --background: #ffffff;
     --foreground: #171717;
+
+    --sud-blue: #1582be;
+    --sud-orange: #f95300;
+    --blue-dark: #002b4a;
+    --sud-blue-ultra-light: #e3f0f9;
 }
 
-@theme inline {
+@theme {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-geist-mono);
+
+    --color-font-primary: var(--blue-dark);
+    --color-box-background: white;
+    --color-primary: var(--sud-blue);
+    --color-secondary: var(--sud-orange);
 }
 
 body {

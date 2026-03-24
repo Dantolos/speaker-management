@@ -12,7 +12,9 @@ export default function InfoRow({ label, value, note }: Props) {
         </div>
         <div className="w-[73%]">
           {note && <div className="">{note}</div>}
-          <div className="w-full bg-white p-2 rounded-xl">{value}</div>
+          <div className="w-full border-primary/10 border-2 p-2 rounded-xl">
+            {value}
+          </div>
         </div>
       </div>
     </>

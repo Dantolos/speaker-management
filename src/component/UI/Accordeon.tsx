@@ -24,15 +24,15 @@ export default function Accordeon({ title, icon, children }: L3AccoredonProps) {
   const toggleOpen = () => setIsOpen(!isOpen);
 
   return (
-    <div className="bg-gray-100 rounded-2xl overflow-hidden my-2">
+    <div className="bg-box-background shadow-xl rounded-2xl overflow-hidden my-2">
       <button
         onClick={toggleOpen}
-        className="w-full flex justify-between items-center py-4 p-4 bg-gray-100 font-semibold text-left hover:bg-gray-100  hover:cursor-pointer  transition-all"
+        className="w-full flex justify-between items-center py-4 p-4   font-semibold text-left hover:bg-shade/20  hover:cursor-pointer  transition-all"
         aria-expanded={isOpen}
         aria-controls="accordion-content"
       >
-        <div className="flex gap-4 items-center">
-          {icon && <div className="bg-white rounded-2xl p-2">{icon}</div>}
+        <div className="flex gap-4 items-center ">
+          {icon && <div className="bg-primary/15 rounded-2xl p-2">{icon}</div>}
           <h2 className="text-2xl font-bold pb-0 leading-6 translate-y-0.5  ">
             {title}
           </h2>
@@ -57,7 +57,7 @@ export default function Accordeon({ title, icon, children }: L3AccoredonProps) {
       <div
         ref={contentRef}
         id="accordion-content"
-        className={`overflow-hidden transition-max-height duration-500 ease-in-out bg-gray-100  px-4`}
+        className={`overflow-hidden transition-max-height duration-500 ease-in-out   px-4`}
         style={{ maxHeight }}
       >
         <div className={`${isOpen && "border-t-1"} border-t-gray-500 py-4`}>

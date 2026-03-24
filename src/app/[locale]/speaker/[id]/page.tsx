@@ -9,7 +9,6 @@ import {
   Languages,
   Mic,
   Phone,
-  Spotlight,
 } from "lucide-react";
 
 import { getSpeaker } from "@/services/airtable";
@@ -86,7 +85,7 @@ export default async function SpeakerPage({ params }: Props) {
   // ── Derived values ────────────────────────────────────────────────────────
   const eventStart = toDate(data.Event?.["Beginn"]);
   const eventEnd = data.Event?.["Ende"] ? toDate(data.Event?.["Ende"]) : null;
-  const sessionStart = data.Sessions?.[0]?.["Start (from Sessions NEW)"]
+  const _sessionStart = data.Sessions?.[0]?.["Start (from Sessions NEW)"]
     ? toDate(data.Sessions?.[0]?.["Start (from Sessions NEW)"])
     : null;
   const checkinDate = data["Hotel Check-In"]
@@ -104,7 +103,7 @@ export default async function SpeakerPage({ params }: Props) {
 
   const location = data.Event?.Location;
   const hotel = data.Hotel;
-  const firstSession = data.Sessions?.[0];
+  const _firstSession = data.Sessions?.[0];
 
   // ── Formatters ────────────────────────────────────────────────────────────
   const fmtDate = (d: Date) =>
@@ -120,7 +119,7 @@ export default async function SpeakerPage({ params }: Props) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="p-8 max-w-[800px] m-auto">
+    <div className="p-8 max-w-[800px] m-auto text-font-primary">
       {/* Header */}
       <div className="mb-4 flex justify-between">
         <h1 className="text-4xl font-bold mb-4">
@@ -146,8 +145,8 @@ export default async function SpeakerPage({ params }: Props) {
             ]
               .filter(({ value }) => value != null)
               .map(({ label, value }) => (
-                <div key={label} className="bg-white rounded-2xl pr-4">
-                  <span className="font-bold bg-gray-300 px-4 py-1 mr-2 rounded-2xl">
+                <div key={label} className="bg-primary/10 rounded-2xl pr-4">
+                  <span className="font-bold bg-primary/20 px-4 py-1 mr-2 rounded-2xl">
                     {label}
                   </span>
                   <span>{value}</span>
@@ -182,8 +181,8 @@ export default async function SpeakerPage({ params }: Props) {
       </Accordeon>
 
       {/* Session / Gig */}
-      {false && (
-        <Accordeon title={t("section-gig")} icon={<Spotlight />}>
+
+      {/*<Accordeon title={t("section-gig")} icon={<Spotlight />}>
           {sessionStart && (
             <InfoRow
               label={t("label-date")}
@@ -204,8 +203,7 @@ export default async function SpeakerPage({ params }: Props) {
               value={<p>{firstSession.Sessionsprache}</p>}
             />
           )}
-        </Accordeon>
-      )}
+        </Accordeon>*/}
 
       {/* Hotel */}
       {hotel?.Name && (
@@ -242,7 +240,7 @@ export default async function SpeakerPage({ params }: Props) {
 
       {/* On-site contact */}
       {data.Referentenbetreuer && (
-        <div className="bg-gray-100 rounded-2xl my-4 p-4">
+        <div className="bg-box-background shadow-xl rounded-2xl my-4 p-4">
           <h2 className="text-2xl font-bold border-b pb-2 mb-4">
             {t("section-on-site")}
           </h2>
@@ -263,20 +261,17 @@ export default async function SpeakerPage({ params }: Props) {
                 </h5>
 
                 {data.Referentenbetreuer["Phone Number"] && (
-                  <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
+                  <div className="bg-primary/10   rounded-2xl py-1 px-2 flex gap-2 items-center">
                     <Phone size={20} />
                     {data.Referentenbetreuer["Phone Number"]}
                   </div>
                 )}
 
                 {data.Referentenbetreuer["Sprachen"]?.length && (
-                  <div className="border-gray-200 border-2 rounded-2xl py-1 px-2 flex gap-2 items-center">
+                  <div className="bg-primary/10 rounded-2xl py-1 px-2 flex gap-2 items-center">
                     <Languages size={20} />
                     {data.Referentenbetreuer["Sprachen"].map((sprache, i) => (
-                      <span
-                        key={i}
-                        className="bg-gray-200 rounded-2xl py-1 px-2"
-                      >
+                      <span key={i} className="bg-white rounded-2xl py-1 px-2">
                         {t(sprache!)}
                       </span>
                     ))}
@@ -291,7 +286,7 @@ export default async function SpeakerPage({ params }: Props) {
       {/* Schedule */}
       {ProgramData?.length > 0 && (
         <div className="break-before-page my-4">
-          <div className="rounded-2xl p-4 bg-gray-100">
+          <div className="rounded-2xl p-4 bg-box-background shadow-xl">
             <h3 className="text-2xl font-bold border-b pb-2">
               {t("section-schedule")}
             </h3>
@@ -339,17 +334,20 @@ export default async function SpeakerPage({ params }: Props) {
 
       {/* Static sections */}
       {[
-        { key: "section-media", textKey: "media-text" },
+        //{ key: "section-media", textKey: "media-text" },
         { key: "section-about", textKey: "about-text" },
       ].map(({ key, textKey }) => (
-        <div key={key} className="bg-gray-100 rounded-2xl my-4 p-4">
+        <div
+          key={key}
+          className="bg-box-background shadow-xl rounded-2xl my-4 p-4"
+        >
           <h3 className="text-2xl font-bold border-b pb-2 mb-4">{t(key)}</h3>
           <p>{t(textKey)}</p>
         </div>
       ))}
 
       {/* Contact */}
-      <div className="bg-gray-100 rounded-2xl my-4 p-4">
+      <div className="bg-box-background shadow-xl rounded-2xl my-4 p-4">
         <h3 className="text-2xl font-bold border-b pb-2 mb-4">
           {t("section-contact")}
         </h3>

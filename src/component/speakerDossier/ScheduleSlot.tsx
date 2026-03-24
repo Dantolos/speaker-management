@@ -38,7 +38,7 @@ export default function ScheduleSlot({
         : undefined;
 
   return (
-    <div className="p-4 bg-gray-100 gap-4 flex items-stretch rounded-2xl min-h-[80px] break-inside-avoid">
+    <div className="p-4 bg-box-background shadow-xl gap-4 flex items-stretch rounded-2xl min-h-[80px] break-inside-avoid">
       <div className="w-[100px]   flex flex-col justify-between self-stretch relative pl-3">
         <div className="absolute top-0 border-l-2 h-[calc(100%-22px)]  mt-[10px] -ml-3"></div>
         {time_start && (

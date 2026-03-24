@@ -23,6 +23,7 @@ import Schedule from "@/component/speakerDossier/Schedule";
 import ButtonGeneratePdf from "@/component/speakerDossier/ButtonGeneratePdf";
 import Link from "next/link";
 import type { DeepPartialSpeaker } from "@/types/speaker";
+import LanguageSwitch from "@/component/UI/LanguageSwitch";
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -121,15 +122,16 @@ export default async function SpeakerPage({ params }: Props) {
   return (
     <div className="p-8 max-w-[800px] m-auto">
       {/* Header */}
-      <div className="mb-4">
+      <div className="mb-4 flex justify-between">
         <h1 className="text-4xl font-bold mb-4">
           {t("title")} {speakerName || "Kein Name"}
         </h1>
+        <LanguageSwitch currentLocale={locale} />
       </div>
 
       {/* Event overview */}
       <Accordeon title={t("section-event")} icon={<Info />}>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 ">
           <h3 className="text-xl font-bold">
             {data.Event?.Plattformen?.["Conference Name"] ?? "Event"}
           </h3>

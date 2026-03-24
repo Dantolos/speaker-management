@@ -182,32 +182,30 @@ export default async function SpeakerPage({ params }: Props) {
       </Accordeon>
 
       {/* Session / Gig */}
-      <Accordeon title={t("section-gig")} icon={<Spotlight />}>
-        {sessionStart && (
-          <InfoRow
-            label={t("label-date")}
-            value={<p>{fmtDate(sessionStart)}</p>}
-          />
-        )}
+      {false && (
+        <Accordeon title={t("section-gig")} icon={<Spotlight />}>
+          {sessionStart && (
+            <InfoRow
+              label={t("label-date")}
+              value={<p>{fmtDate(sessionStart)}</p>}
+            />
+          )}
 
-        {/*{location && (
-          <InfoRow
-            label={t("label-location")}
-            value={<AddressBlock place={location} />}
-          />
-        )}*/}
+          {firstSession?.Room && (
+            <InfoRow
+              label={t("label-room")}
+              value={<p>{firstSession.Room}</p>}
+            />
+          )}
 
-        {firstSession?.Room && (
-          <InfoRow label={t("label-room")} value={<p>{firstSession.Room}</p>} />
-        )}
-
-        {firstSession?.Sessionsprache && (
-          <InfoRow
-            label={t("label-language")}
-            value={<p>{firstSession.Sessionsprache}</p>}
-          />
-        )}
-      </Accordeon>
+          {firstSession?.Sessionsprache && (
+            <InfoRow
+              label={t("label-language")}
+              value={<p>{firstSession.Sessionsprache}</p>}
+            />
+          )}
+        </Accordeon>
+      )}
 
       {/* Hotel */}
       {hotel?.Name && (
@@ -305,46 +303,6 @@ export default async function SpeakerPage({ params }: Props) {
         </div>
       )}
 
-      {/* Static sections */}
-      {[
-        { key: "section-media", textKey: "media-text" },
-        { key: "section-about", textKey: "about-text" },
-      ].map(({ key, textKey }) => (
-        <div key={key} className="bg-gray-100 rounded-2xl my-4 p-4">
-          <h3 className="text-2xl font-bold border-b pb-2 mb-4">{t(key)}</h3>
-          <p>{t(textKey)}</p>
-        </div>
-      ))}
-
-      {/* Contact */}
-      <div className="bg-gray-100 rounded-2xl my-4 p-4">
-        <h3 className="text-2xl font-bold border-b pb-2 mb-4">
-          {t("section-contact")}
-        </h3>
-        <div className="flex justify-between flex-wrap gap-4">
-          <div className="w-[300px]">
-            <p className="font-bold">
-              {data.Event?.Plattformen?.["Conference Name"]}
-            </p>
-            <p>c/o LINDEN 3L AG</p>
-            <p>Weyermannsstrasse 36</p>
-            <p>3008 Bern</p>
-            <Link href="mailto:hello@andermatt-dialog.ch">
-              hello@startupdays.ch
-            </Link>
-          </div>
-          <div className="w-[300px]">
-            <p className="font-bold">{t("contact-person")}</p>
-            <p>Senior Project Manager</p>
-            <p>Alexandra Lehmann</p>
-            <p>Tel: +49 172 133 76 50</p>
-            <Link href="mailto:ruth.inniger@lucerne-dialogue.ch">
-              ale@livelearninglabs.ch
-            </Link>
-          </div>
-        </div>
-      </div>
-
       {/* Platform */}
       {data["Zugangsdaten Plattform"] && (
         <Accordeon title={t("section-platform")} icon={<KeyRound />}>
@@ -378,6 +336,46 @@ export default async function SpeakerPage({ params }: Props) {
           </div>
         </Accordeon>
       )}
+
+      {/* Static sections */}
+      {[
+        { key: "section-media", textKey: "media-text" },
+        { key: "section-about", textKey: "about-text" },
+      ].map(({ key, textKey }) => (
+        <div key={key} className="bg-gray-100 rounded-2xl my-4 p-4">
+          <h3 className="text-2xl font-bold border-b pb-2 mb-4">{t(key)}</h3>
+          <p>{t(textKey)}</p>
+        </div>
+      ))}
+
+      {/* Contact */}
+      <div className="bg-gray-100 rounded-2xl my-4 p-4">
+        <h3 className="text-2xl font-bold border-b pb-2 mb-4">
+          {t("section-contact")}
+        </h3>
+        <div className="flex justify-between flex-wrap gap-4">
+          <div className="w-[300px]">
+            <p className="font-bold">
+              {data.Event?.Plattformen?.["Conference Name"]}
+            </p>
+            <p>c/o LINDEN 3L AG</p>
+            <p>Weyermannsstrasse 36</p>
+            <p>3008 Bern</p>
+            <Link href="mailto:hello@andermatt-dialog.ch">
+              hello@startupdays.ch
+            </Link>
+          </div>
+          <div className="w-[300px]">
+            <p className="font-bold">{t("contact-person")}</p>
+            <p>Senior Project Manager</p>
+            <p>Alexandra Leemann</p>
+            <p>Tel: +49 172 133 76 50</p>
+            <Link href="mailto:ruth.inniger@lucerne-dialogue.ch">
+              ale@livelearninglabs.ch
+            </Link>
+          </div>
+        </div>
+      </div>
 
       {/* PDF */}
       <div className="w-full flex items-center justify-center">

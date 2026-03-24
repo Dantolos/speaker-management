@@ -6,7 +6,7 @@
     "from": "von",
     "till": "bis",
     "at": "am",
-    "website": "Websiete",
+    "website": "Webseite",
     "speaker": "Referenten",
     "program": "Programm",
     "note": "Bemerkung"
@@ -74,6 +74,8 @@
     "section-contact": "Informationen / Kontaktpersonen",
     "contact-person": "Verantwortliche Kontaktperson",
     "sufix-minute": "Minuten",
-    "pdf-filename": "speaker-dossier"
+    "pdf-filename": "speaker-dossier",
+    "section-platform": "So greifen Sie auf Ihr Profil auf unserer Registrierungsplattform zu:",
+    "platform-pwd": "Passwort"
   }
 }

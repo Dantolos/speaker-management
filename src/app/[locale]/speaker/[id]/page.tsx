@@ -5,6 +5,7 @@ import {
   Calendar,
   Globe,
   Info,
+  KeyRound,
   Languages,
   Mic,
   Phone,
@@ -187,12 +188,12 @@ export default async function SpeakerPage({ params }: Props) {
           />
         )}
 
-        {location && (
+        {/*{location && (
           <InfoRow
             label={t("label-location")}
             value={<AddressBlock place={location} />}
           />
-        )}
+        )}*/}
 
         {firstSession?.Room && (
           <InfoRow label={t("label-room")} value={<p>{firstSession.Room}</p>} />
@@ -334,13 +335,47 @@ export default async function SpeakerPage({ params }: Props) {
             <p className="font-bold">{t("contact-person")}</p>
             <p>Senior Project Manager</p>
             <p>Alexandra Lehmann</p>
-            <p>Tel: +41 41 260 85 34</p>
+            <p>Tel: +49 172 133 76 50</p>
             <Link href="mailto:ruth.inniger@lucerne-dialogue.ch">
               ale@livelearninglabs.ch
             </Link>
           </div>
         </div>
       </div>
+
+      {/* Platform */}
+      {data["Zugangsdaten Plattform"] && (
+        <Accordeon title={t("section-platform")} icon={<KeyRound />}>
+          <ul className="mb-2">
+            <li>
+              You are already registered for the event on our platform. You can
+              log in with your login data.
+            </li>
+            <li>
+              Feel free to update your profile and book your sessions or 1:1
+              meetings.
+            </li>
+            <li>
+              Login with your e-mail address{" "}
+              <b>{data["Email direkt (from Person)"]}</b>
+              and your password
+            </li>
+          </ul>
+          <div className="w-full">
+            <InfoRow
+              label={t("platform-pwd")}
+              value={<p>{data["Zugangsdaten Plattform"]}</p>}
+            />
+          </div>
+          <div className="  my-2">
+            <LinkButton
+              text="zur Platform"
+              link="https://sud25.startupdays.ch/login?next=/promotion-code"
+              icon={<Globe />}
+            ></LinkButton>
+          </div>
+        </Accordeon>
+      )}
 
       {/* PDF */}
       <div className="w-full flex items-center justify-center">

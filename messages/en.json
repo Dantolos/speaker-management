@@ -73,6 +73,9 @@
     "section-contact": "Information / Contact persons",
     "contact-person": "Responsible contact person",
     "sufix-minute": "minutes",
-    "pdf-filename": "speaker-briefing"
+    "pdf-filename": "speaker-briefing",
+
+    "section-platform": "How to access your profil on our registration platform:",
+    "platform-pwd": "Password:"
   }
 }

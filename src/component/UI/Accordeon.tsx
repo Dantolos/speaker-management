@@ -24,7 +24,7 @@ export default function Accordeon({ title, icon, children }: L3AccoredonProps) {
   const toggleOpen = () => setIsOpen(!isOpen);
 
   return (
-    <div className="bg-gray-100 rounded-2xl overflow-hidden mt-4">
+    <div className="bg-gray-100 rounded-2xl overflow-hidden my-2">
       <button
         onClick={toggleOpen}
         className="w-full flex justify-between items-center py-4 p-4 bg-gray-100 font-semibold text-left hover:bg-gray-100  hover:cursor-pointer  transition-all"
@@ -33,7 +33,7 @@ export default function Accordeon({ title, icon, children }: L3AccoredonProps) {
       >
         <div className="flex gap-4 items-center">
           {icon && <div className="bg-white rounded-2xl p-2">{icon}</div>}
-          <h2 className="text-2xl font-bold pb-0 leading-1 translate-y-0.5  ">
+          <h2 className="text-2xl font-bold pb-0 leading-6 translate-y-0.5  ">
             {title}
           </h2>
         </div>

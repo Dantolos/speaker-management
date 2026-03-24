@@ -28,6 +28,8 @@ const FIELDS = {
     "Backstage Timeslot",
     "Referentenbetreuer",
     "Anmerkung zum Aufenthalt",
+    "Zugangsdaten Plattform",
+    "Email direkt (from Person)",
   ],
   Kontakte: [
     "Speaker Name",
@@ -137,7 +139,6 @@ type RawReferentRecord = {
   Kontakte?: string[];
 };
 
-// 👇 neu: expliziter Typ für Session-Records mit Speaker-IDs
 type RawSessionRecord = {
   id: string;
   Sessiontypus?: string[];
@@ -155,7 +156,6 @@ type RawSessionRecord = {
   Speaker?: string[]; // linked record IDs — resolved in level 2
 };
 
-// 👇 neu: Kontakt-Record wie er aus Airtable kommt
 type RawKontaktRecord = {
   id: string;
   "Speaker Name"?: string;
@@ -243,6 +243,8 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
     "Backstage Timeslot"?: string[];
     Referentenbetreuer?: string[];
     "Anmerkung zum Aufenthalt"?: string;
+    "Zugangsdaten Plattform"?: string;
+    "Email direkt (from Person)"?: string;
   }>("Confirmed Contributions", id, FIELDS.Contributions);
 
   if (!root) return null;

@@ -134,6 +134,8 @@ export interface Speaker {
   // Lookup field added directly in Airtable — returns an array of strings
   "Event Name"?: string[];
   "Speaker Name"?: string;
+  "Zugangsdaten Plattform"?: string;
+  "Email direkt (from Person)"?: string;
 }
 
 // ---------------------------------------------------------------------------

@@ -76,6 +76,7 @@
     "sufix-minute": "Minuten",
     "pdf-filename": "speaker-dossier",
     "section-platform": "So greifen Sie auf Ihr Profil auf unserer Registrierungsplattform zu:",
-    "platform-pwd": "Passwort"
+    "platform-pwd": "Passwort",
+    "platform-user": "E-Mail"
   }
 }

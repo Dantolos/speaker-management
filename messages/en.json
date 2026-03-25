@@ -76,6 +76,7 @@
     "pdf-filename": "speaker-briefing",
 
     "section-platform": "How to access your profil on our registration platform:",
-    "platform-pwd": "Password:"
+    "platform-pwd": "Password:",
+    "platform-user": "E-Mail"
   }
 }

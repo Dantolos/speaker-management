@@ -7,6 +7,7 @@ import {
   Info,
   KeyRound,
   Languages,
+  MessageCircleWarning,
   Mic,
   Phone,
 } from "lucide-react";
@@ -310,24 +311,27 @@ export default async function SpeakerPage({ params }: Props) {
               Feel free to update your profile and book your sessions or 1:1
               meetings.
             </li>
-            <li>
-              Login with your e-mail address{" "}
-              <b>{data["Email direkt (from Person)"]}</b>
-              and your password
-            </li>
           </ul>
-          <div className="w-full">
-            <InfoRow
-              label={t("platform-pwd")}
-              value={<p>{data["Zugangsdaten Plattform"]}</p>}
-            />
-          </div>
-          <div className="  my-2">
+          <div className="   my-2">
             <LinkButton
               text="Platform"
               link="https://sud25.startupdays.ch/login?next=/promotion-code"
               icon={<Globe />}
             ></LinkButton>
+          </div>
+          <div className="w-full">
+            <InfoRow
+              label={t("platform-user")}
+              value={<p>{data["Email direkt (from Person)"]}</p>}
+            />
+            <InfoRow
+              label={t("platform-pwd")}
+              value={<p>{data["Zugangsdaten Plattform"]}</p>}
+            />
+            <div className="flex items-center mt-2 gap-2 border-1 border-secondary rounded-2xl py-3 px-3 bg-secondary/5 text-secondary">
+              <MessageCircleWarning />
+              <p>Please change your password after your first login</p>
+            </div>
           </div>
         </Accordeon>
       )}

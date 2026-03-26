@@ -44,7 +44,7 @@
     "label-check-out": "Check-out",
     "label-booking-nr": "Buchungs Nr.",
     "section-schedule": "Individuelles Programm",
-    "schedule-text": "Hier finden Sie alle wichtigen Zeitfenster für Ihren Auftritt.",
+    "schedule-text": "Nachstehend finden Sie alle wichtigen Zeitangaben für Ihren Auftritt.",
     "schedule-arrival": "Anreise",
     "schedule-departure": "Abreise",
     "schedule-origin": "Origin",
@@ -65,6 +65,8 @@
     "schedule-session": "Auftritt",
     "schedule-session-end-title": "Ende Ihres Auftritts",
     "schedule-session-end-text": "Sie verlassen nach Ihrem Auftritt die Bühne. Bitte beachten Sie die Anweisungen des Moderators und Ihrer Referentenbetreuung.",
+    "schedule-attention": "Bitte sei <b>10 Min. vor deinem Auftritt</b> für den Mic-Check da.",
+
     "Catering": "Verpflegung",
     "Flugzeug": "Flug",
     "section-media": "Foto/Video",
@@ -76,7 +78,9 @@
     "sufix-minute": "Minuten",
     "pdf-filename": "speaker-dossier",
     "section-platform": "So greifen Sie auf Ihr Profil auf unserer Registrierungsplattform zu:",
+    "plafrorm-text": "Sie sind bereits auf unserer Plattform für die Veranstaltung registriert. Sie können sich mit Ihren Zugangsdaten anmelden. Sie können gerne Ihr Profil aktualisieren und Ihre Sessions oder Einzelgespräche buchen.",
     "platform-pwd": "Passwort",
+    "platform-pwd-note": "Bitte ändern Sie Ihr Passwort nach Ihrer ersten Anmeldung.",
     "platform-user": "E-Mail"
   }
 }

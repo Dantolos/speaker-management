@@ -76,8 +76,9 @@ export default function SessionSlot({
       <div className="flex items-center mt-2 gap-2 border-1 border-secondary rounded-2xl py-3 px-3 bg-secondary/5 text-secondary">
         <MessageCircleWarning />
         <p>
-          Please be there <b>10 min before your appearance</b> for the mic
-          check.
+          {t.rich("schedule-attention", {
+            b: (chunks) => <b>{chunks}</b>,
+          })}
         </p>
       </div>
     </div>

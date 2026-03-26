@@ -63,9 +63,10 @@
     "schedule-session-end-title": "End of your performance",
     "schedule-session-end-text": "You leave the stage after your performance. Please follow the instructions of the presenter and your speaker support staff.",
     "Catering": "Catering",
+    "schedule-attention": " Please be there <b>10 min before your appearance</b> for the mic check.",
 
     "Flugzeug": "Flight",
-    "schedule-text": "Here you will find all the important time slots for your performance.",
+    "schedule-text": "Please find all the important time slots for your performance below.",
     "section-media": "Photo & Video",
     "media-text": "The entire conference will be recorded and the sessions will be available on demand for participants. Photos will be published on our website and the media will also have access to a selection of photos. ",
     "section-about": "Participant field",
@@ -76,7 +77,10 @@
     "pdf-filename": "speaker-briefing",
 
     "section-platform": "How to access your profil on our registration platform:",
+    "plafrorm-text": "You are already registered for the event on our platform. You can log in with your login data. Feel free to update your profile and book your sessions or 1:1 meetings.",
+
     "platform-pwd": "Password:",
+    "platform-pwd-note": "Please change your password after your first login",
     "platform-user": "E-Mail"
   }
 }

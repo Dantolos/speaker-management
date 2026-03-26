@@ -302,16 +302,9 @@ export default async function SpeakerPage({ params }: Props) {
       {/* Platform */}
       {data["Zugangsdaten Plattform"] && (
         <Accordeon title={t("section-platform")} icon={<KeyRound />}>
-          <ul className="mb-2">
-            <li>
-              You are already registered for the event on our platform. You can
-              log in with your login data.
-            </li>
-            <li>
-              Feel free to update your profile and book your sessions or 1:1
-              meetings.
-            </li>
-          </ul>
+          <div className="mb-2">
+            <p>{t("plafrorm-text")}</p>
+          </div>
           <div className="   my-2">
             <LinkButton
               text="Platform"
@@ -330,7 +323,7 @@ export default async function SpeakerPage({ params }: Props) {
             />
             <div className="flex items-center mt-2 gap-2 border-1 border-secondary rounded-2xl py-3 px-3 bg-secondary/5 text-secondary">
               <MessageCircleWarning />
-              <p>Please change your password after your first login</p>
+              <p>{t("platform-pwd-note")}</p>
             </div>
           </div>
         </Accordeon>

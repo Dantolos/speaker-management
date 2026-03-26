@@ -1,6 +1,8 @@
 "use client";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Clock, Languages, MapPin, MessageCircleWarning } from "lucide-react";
+import { toLanguageCode } from "@/i18n/languageMapping";
+
 import SessionInformationTag from "./SessionInformationTag";
 import { Person } from "@/types/speaker";
 
@@ -25,7 +27,18 @@ export default function SessionSlot({
 }: SessionProps) {
   const t = useTranslations("SpeakerBriefing");
   const tG = useTranslations("General");
+  const locale = useLocale();
 
+  console.log("current locale", locale);
+  // kommt von next-intl
+
+  const getLanguageName = (langName: string) => {
+    const langCode = toLanguageCode(langName); // "Englisch" → "en"
+    const displayNames = new Intl.DisplayNames([locale], { type: "language" });
+    const translated = displayNames.of(langCode) ?? "";
+    if (!translated) return translated;
+    return translated.charAt(0).toUpperCase() + translated.slice(1);
+  };
   return (
     <div className="flex flex-col gap-2 ">
       {title && <h4 className="font-bold text-2xl mb-0 ">{title}</h4>}
@@ -48,8 +61,8 @@ export default function SessionSlot({
       {language && (
         <SessionInformationTag
           label={t("label-language")}
-          value={language}
-          icon={<Languages size="22" className="  text-gray-400" />}
+          value={getLanguageName(language) || ""}
+          icon={<Languages size="22" className="text-gray-400" />}
         />
       )}
 

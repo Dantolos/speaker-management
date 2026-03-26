@@ -110,13 +110,14 @@ export default async function SpeakerPage({ params }: Props) {
   const fmtDate = (d: Date) =>
     format.dateTime(d, { year: "numeric", month: "long", day: "numeric" });
   const fmtDateTime = (d: Date) =>
-    format.dateTime(d, {
+    `${format.dateTime(d, {
       year: "numeric",
       month: "long",
       day: "numeric",
+    })} | ${format.dateTime(d, {
       hour: "numeric",
       minute: "2-digit",
-    });
+    })}`;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (

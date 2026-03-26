@@ -81,6 +81,8 @@
     "plafrorm-text": "Sie sind bereits auf unserer Plattform für die Veranstaltung registriert. Sie können sich mit Ihren Zugangsdaten anmelden. Sie können gerne Ihr Profil aktualisieren und Ihre Sessions oder Einzelgespräche buchen.",
     "platform-pwd": "Passwort",
     "platform-pwd-note": "Bitte ändern Sie Ihr Passwort nach Ihrer ersten Anmeldung.",
-    "platform-user": "E-Mail"
+    "platform-user": "E-Mail",
+
+    "pdf-download": "PDF generieren"
   }
 }

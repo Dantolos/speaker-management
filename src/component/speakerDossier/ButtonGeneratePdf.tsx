@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 //import { useTranslations } from "next-intl";
 
 type PDFPros = {
@@ -8,6 +9,7 @@ type PDFPros = {
 };
 
 export default function DownloadPdfButton({ filename }: PDFPros) {
+  const t = useTranslations("SpeakerBriefing");
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
   //const t = useTranslations("SpeakerBriefing");
@@ -89,7 +91,7 @@ export default function DownloadPdfButton({ filename }: PDFPros) {
           </style>
         </>
       ) : (
-        <>PDF herunterladen</>
+        <>{t("pdf-download")}</>
       )}
     </button>
   );

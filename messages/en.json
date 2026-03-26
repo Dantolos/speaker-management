@@ -81,6 +81,8 @@
 
     "platform-pwd": "Password:",
     "platform-pwd-note": "Please change your password after your first login",
-    "platform-user": "E-Mail"
+    "platform-user": "E-Mail",
+
+    "pdf-download": "Generate PDF"
   }
 }

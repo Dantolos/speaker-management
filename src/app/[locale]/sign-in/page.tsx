@@ -19,17 +19,15 @@ export default async function SignIn({ searchParams, params }: Props) {
   console.log(sessionType);
 
   return (
-    <div className="bg-gray-600 w-[100vw] h-[100vh] absolute px-2">
-      <div className="max-w-md mx-auto mt-10   bg-white shadow-2xl rounded-3xl pt-10 pb-4 px-4">
+    <div className="bg-primary/10 w-screen h-screen absolute px-2">
+      <div className="max-w-md mx-auto mt-10   bg-foreground/10 shadow-2xl rounded-3xl pt-10 pb-8 px-4">
         <div className="flex flex-col gap-4 mb-4 px-2">
-          <h2 className="text-4xl text-center text-gray-700 font-bold">
-            {t("title")}
-          </h2>
-          <p className="text-center text-gray-700">{t("description")}</p>
+          <h2 className="text-3xl text-center text-primary  ">{t("title")}</h2>
+          <p className="text-center  ">{t("description")}</p>
         </div>
         <form
           action={sessionType && sessionType === "team" ? authTeam : auth}
-          className="rounded-3xl bg-white"
+          className="rounded-3xl  "
         >
           <input
             type="hidden"
@@ -37,20 +35,18 @@ export default async function SignIn({ searchParams, params }: Props) {
             defaultValue={redirectParam || "/"}
           />
           <label className="block mb-4">
-            <p className="text-center text-gray-500 font-bold">
-              {t("password")}
-            </p>
+            <p className="text-center text-foreground/50  ">{t("password")}</p>
             <input
               type="password"
               name="password"
               required
               autoFocus
-              className="block w-full mt-1 p-4 bg-gray-200 rounded-2xl"
+              className="block w-full mt-1 p-4 bg-primary/20 border-primary border-2 rounded-2xl"
             />
           </label>
           <button
             type="submit"
-            className="w-full py-4 bg-gray-800 text-white rounded-xl hover:bg-gray-700 cursor-pointer"
+            className="w-full py-4 bg-primary text-white rounded-xl hover:bg-secondary cursor-pointer"
           >
             Sign In
           </button>

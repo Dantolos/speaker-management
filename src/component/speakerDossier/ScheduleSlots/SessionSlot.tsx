@@ -42,27 +42,27 @@ export default function SessionSlot({
   return (
     <div className="flex flex-col gap-2 ">
       {title && <h4 className="font-bold text-2xl mb-0 ">{title}</h4>}
-      {subtitle && <h6 className="font-bold text-lg leading-2">{subtitle}</h6>}
+      {subtitle && <h6 className="font-bold text-lg leading-5">{subtitle}</h6>}
       {description && <p>{description}</p>}
       {room && (
         <SessionInformationTag
           label={t("label-room")}
           value={room}
-          icon={<MapPin size="22" className="  text-gray-400" />}
+          icon={<MapPin size="22" className="  text-primary/80" />}
         />
       )}
       {duration && (
         <SessionInformationTag
           label={t("label-duration")}
           value={`${duration} ${t("sufix-minute")}`}
-          icon={<Clock size="22" className="  text-gray-400" />}
+          icon={<Clock size="22" className="  text-primary/80" />}
         />
       )}
       {language && (
         <SessionInformationTag
           label={t("label-language")}
           value={getLanguageName(language) || ""}
-          icon={<Languages size="22" className="text-gray-400" />}
+          icon={<Languages size="22" className="text-primary/80" />}
         />
       )}
 
@@ -71,7 +71,10 @@ export default function SessionSlot({
           <p className="font-bold mb-2">{tG("speaker")}</p>
           <div className="flex gap-2 flex-wrap">
             {speaker.map((person, index) => (
-              <div key={index} className="py-1 px-3 rounded-2xl bg-primary/10">
+              <div
+                key={index}
+                className="py-1 px-3 rounded-2xl bg-primary/20 text-primary"
+              >
                 {`${person["First Name"]} ${person["Last Name"]}`}
               </div>
             ))}

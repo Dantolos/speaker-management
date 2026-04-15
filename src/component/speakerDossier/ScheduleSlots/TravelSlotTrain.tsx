@@ -37,7 +37,7 @@ export default function TravelSlotTrain({
           })}{" "}
         </h4>
       </div>
-      <div className="bg-white rounded-2xl p-2 w-full flex justify-between">
+      <div className="bg-primary/20 rounded-2xl p-2 w-full flex justify-between">
         <div className="flex gap-4">
           <div className="self-center">
             <p>{t("schedule-origin")}</p>
@@ -48,7 +48,7 @@ export default function TravelSlotTrain({
           {trainNr && (
             <p>
               {t("schedule-trainnr")}
-              <span className="font-bold bg-gray-200 rounded-2xl p-2 ml-1">
+              <span className="font-bold bg-primary rounded-2xl p-2 ml-1">
                 {trainNr}
               </span>
             </p>
@@ -65,7 +65,7 @@ export default function TravelSlotTrain({
           )}
         </div>
       </div>
-      <div className="bg-white rounded-2xl p-2 w-full flex justify-between">
+      <div className="bg-primary/20 rounded-2xl p-2 w-full flex justify-between">
         <div className="flex gap-4">
           <div className="self-center">
             <p>{t("schedule-destination")}</p>

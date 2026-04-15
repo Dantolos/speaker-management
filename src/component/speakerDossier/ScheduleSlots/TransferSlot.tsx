@@ -32,7 +32,7 @@ export default function TransferSlot({
       <p>{t("schedule-transfer-text")}</p>
 
       <div className="w-full flex gap-2">
-        <div className="bg-white p-2 rounded-2xl">
+        <div className="bg-background p-2 rounded-2xl">
           <p className="font-bold">{t("schedule-pickup")}</p>
           <div className="text-2xl">
             {format.dateTime(pickup_Date!, {
@@ -42,7 +42,7 @@ export default function TransferSlot({
           </div>
           <div>{pickupAddress}</div>
         </div>
-        <div className="bg-white p-2 rounded-2xl">
+        <div className="bg-background p-2 rounded-2xl">
           <p className="font-bold">{t("schedule-dropoff")}</p>
           <div className="text-2xl">
             {format.dateTime(dropoff_Date!, {
@@ -54,7 +54,7 @@ export default function TransferSlot({
         </div>
       </div>
       {note && (
-        <div className="bg-white p-2 rounded-2xl">
+        <div className="bg-background p-2 rounded-2xl">
           <p className="font-bold">{tg("note")}</p>
           <p>{note}</p>
         </div>

@@ -65,7 +65,7 @@ export default function DownloadPdfButton({ filename }: PDFPros) {
   return (
     <button
       onClick={handleDownload}
-      className="py-3 px-6 border-primary border-2 rounded-2xl bg-white text-primary hover:bg-primary/10 cursor-pointer"
+      className="py-3 px-6 border-primary border-2 rounded-2xl bg-primary/10 text-primary hover:bg-primary/10 cursor-pointer"
     >
       {isLoading ? (
         <>

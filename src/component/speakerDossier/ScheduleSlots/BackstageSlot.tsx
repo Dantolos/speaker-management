@@ -15,7 +15,7 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
           <>
             <div className="flex gap-4 items-center mb-2">
               <Eye
-                className="bg-white p-2 rounded-xl"
+                className="bg-primary/20 p-2 rounded-xl"
                 size={40}
                 strokeWidth="2px"
               />
@@ -28,8 +28,8 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
 
             <p>{backstageData.Description}</p>
             {backstageData.Notes && (
-              <div className=" bg-white p-2 rounded-2xl">
-                <p className="text-gray-400">{t("schedule-note")}:</p>
+              <div className=" bg-primary/10 p-2 rounded-2xl">
+                <p className="text-foreground/50">{t("schedule-note")}:</p>
                 <p className="italic">{backstageData.Notes}</p>
               </div>
             )}
@@ -40,7 +40,7 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
           <>
             <div className="flex gap-4 items-center mb-2">
               <Camera
-                className="bg-white p-2 rounded-xl"
+                className="bg-primary/20 p-2 rounded-xl"
                 size={40}
                 strokeWidth="2px"
               />
@@ -53,8 +53,8 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
             </div>
             <p>{backstageData.Description}</p>
             {backstageData.Notes && (
-              <div className=" bg-white p-2 rounded-2xl">
-                <p className="text-gray-400">{t("schedule-note")}:</p>
+              <div className=" bg-primary/10 p-2 rounded-2xl">
+                <p className="text-foreground/50">{t("schedule-note")}:</p>
                 <p className="italic">{backstageData.Notes}</p>
               </div>
             )}
@@ -65,7 +65,7 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
           <>
             <div className=" flex gap-4 items-center  mb-2">
               <Utensils
-                className="bg-white p-2 rounded-xl"
+                className="bg-primary/20 p-2 rounded-xl"
                 size={40}
                 strokeWidth="2px"
               />
@@ -78,8 +78,8 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
             </div>
             <p>{backstageData.Description}</p>
             {backstageData.Notes && (
-              <div className=" bg-white p-2 rounded-2xl">
-                <p className="text-gray-400">{t("schedule-note")}:</p>
+              <div className=" bg-primary/10 p-2 rounded-2xl">
+                <p className="text-foreground/50">{t("schedule-note")}:</p>
                 <p className="italic">{backstageData.Notes}</p>
               </div>
             )}
@@ -90,7 +90,7 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
           <>
             <div className=" flex gap-4 items-center mb-2">
               <Utensils
-                className="bg-white p-2 rounded-xl"
+                className="bg-primary/20 p-2 rounded-xl"
                 size={40}
                 strokeWidth="2px"
               />
@@ -102,8 +102,8 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
             </div>
             <p>{backstageData.Description}</p>
             {backstageData.Notes && (
-              <div className=" bg-white p-2 rounded-2xl">
-                <p className="text-gray-400">{t("schedule-note")}:</p>
+              <div className=" bg-primary/10 p-2 rounded-2xl">
+                <p className="text-foreground/50">{t("schedule-note")}:</p>
                 <p className="italic">{backstageData.Notes}</p>
               </div>
             )}
@@ -114,7 +114,7 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
           <>
             <div className="flex gap-4 items-center mb-2">
               <Star
-                className="bg-white p-2 rounded-xl"
+                className="bg-primary/20 p-2 rounded-xl"
                 size={40}
                 strokeWidth="2px"
               />
@@ -126,8 +126,8 @@ export default function BackstageSlot({ backstageData }: BackstageProps) {
             </div>
             <p>{backstageData.Description}</p>
             {backstageData.Notes && (
-              <div className=" bg-white p-2 rounded-2xl">
-                <p className="text-gray-400">{t("schedule-note")}:</p>
+              <div className=" bg-primary/10 p-2 rounded-2xl">
+                <p className="text-foreground/50">{t("schedule-note")}:</p>
                 <p className="italic">{backstageData.Notes}</p>
               </div>
             )}

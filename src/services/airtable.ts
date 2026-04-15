@@ -82,7 +82,7 @@ const FIELDS = {
   Transfers: [
     "Pick Up Time",
     "Drop Off Time",
-    "Bemerkung",
+    "Extern Pick Up Freitext",
     "Adresse (from Drop Off)",
     "Adresse (from Pick Up)",
   ],

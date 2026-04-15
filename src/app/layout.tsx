@@ -1,5 +1,6 @@
 //import { NextIntlClientProvider } from "next-intl";
 import type { Metadata } from "next";
+
 type Props = {
   children: React.ReactNode;
 };
@@ -19,11 +20,26 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: Props) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-title" content="L3L MGMT" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+            (function() {
+              const saved = localStorage.getItem('theme');
+              const prefersDark = saved
+                ? saved === 'dark'
+                : window.matchMedia('(prefers-color-scheme: dark)').matches;
+              if (prefersDark) document.documentElement.classList.add('dark');
+            })();
+          `,
+          }}
+        />
       </head>
-      <body>{children}</body>
+      <body className="bg-background text-foreground min-h-screen">
+        {children}
+      </body>
     </html>
   );
 }

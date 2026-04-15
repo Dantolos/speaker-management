@@ -96,14 +96,14 @@ export default function SpeakerTable({
         <div className="relative flex-1 min-w-[200px]">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/60 pointer-events-none"
           />
           <input
             type="search"
             placeholder="Search speakers…"
             defaultValue={currentSearch}
             onChange={handleSearch}
-            className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full pl-9 pr-4 py-2 rounded-xl border border-primary bg-primary/20 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
           />
         </div>
 
@@ -111,7 +111,7 @@ export default function SpeakerTable({
         <select
           value={currentEvent}
           onChange={handleEventFilter}
-          className="py-2 px-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 min-w-[160px]"
+          className="py-2 px-3 rounded-xl border border-primary bg-primary/20 text-sm focus:outline-none focus:ring-2 focus:ring-secondary min-w-[160px]"
         >
           <option value="">All Events</option>
           {allEvents.map((ev) => (
@@ -125,7 +125,7 @@ export default function SpeakerTable({
         {hasActiveFilters && (
           <button
             onClick={handleClearFilters}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1 px-3 py-2 rounded-xl border border-primray bg-primary/20 text-sm text-primary hover:bg-gray-50 transition-colors"
           >
             <X size={14} />
             Clear
@@ -133,16 +133,16 @@ export default function SpeakerTable({
         )}
 
         {/* Count */}
-        <span className="ml-auto text-sm text-gray-400">
+        <span className="ml-auto text-sm text-primary/80">
           {totalCount} speaker{totalCount !== 1 ? "s" : ""}
         </span>
       </div>
 
       {/* ── Table ────────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+      <div className="rounded-2xl border border-foreground/10 overflow-hidden bg-background">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <tr className="border-b border-foreground/10 bg-primary/5 text-left text-xs font-semibold text-foreground uppercase tracking-wide">
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Event</th>
               <th className="px-4 py-3 w-10" />
@@ -153,7 +153,7 @@ export default function SpeakerTable({
               <tr>
                 <td
                   colSpan={5}
-                  className="px-4 py-12 text-center text-gray-400"
+                  className="px-4 py-12 text-center text-foreground"
                 >
                   No speakers found.
                 </td>
@@ -162,16 +162,16 @@ export default function SpeakerTable({
               speakers.map((speaker, i) => (
                 <tr
                   key={speaker.id ?? i}
-                  className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
+                  className="border-b border-foreground/10 last:border-0 hover:bg-primary/10 transition-colors"
                 >
-                  <td className="px-4 py-3 font-medium text-gray-900">
+                  <td className="px-4 py-3 font-medium text-foreground">
                     {speaker["Speaker Name"] ?? speaker.Name ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground/60">
                     {speaker["Event Name"]?.[0] ?? "—"}
                   </td>
 
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right ">
                     <Link
                       href={`/speaker/${speaker.id}`}
                       className="text-xs font-medium text-gray-400 hover:text-gray-900 transition-colors"
@@ -189,7 +189,7 @@ export default function SpeakerTable({
       {/* ── Pagination ───────────────────────────────────────────────────── */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-foreground/40">
             {startItem}–{endItem} of {totalCount}
           </span>
 
@@ -198,7 +198,7 @@ export default function SpeakerTable({
             <Link
               href={buildUrl({ page: String(currentPage - 1) })}
               aria-disabled={currentPage <= 1}
-              className={`p-2 rounded-lg border border-gray-200 transition-colors ${
+              className={`p-2 rounded-lg border border-foreground/80 transition-colors ${
                 currentPage <= 1
                   ? "pointer-events-none opacity-30"
                   : "hover:bg-gray-50"
@@ -222,7 +222,7 @@ export default function SpeakerTable({
                 p === "…" ? (
                   <span
                     key={`ellipsis-${i}`}
-                    className="px-2 text-gray-400 text-sm"
+                    className="px-2 text-foreground text-sm"
                   >
                     …
                   </span>
@@ -232,8 +232,8 @@ export default function SpeakerTable({
                     href={buildUrl({ page: String(p) })}
                     className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm border transition-colors ${
                       p === currentPage
-                        ? "bg-gray-900 text-white border-gray-900"
-                        : "border-gray-200 hover:bg-gray-50"
+                        ? "bg-primary/20 text-primary border-primary"
+                        : "border-none hover:bg-primary/20"
                     }`}
                   >
                     {p}
@@ -245,7 +245,7 @@ export default function SpeakerTable({
             <Link
               href={buildUrl({ page: String(currentPage + 1) })}
               aria-disabled={currentPage >= totalPages}
-              className={`p-2 rounded-lg border border-gray-200 transition-colors ${
+              className={`p-2 rounded-lg border border-foreground/80 transition-colors ${
                 currentPage >= totalPages
                   ? "pointer-events-none opacity-30"
                   : "hover:bg-gray-50"

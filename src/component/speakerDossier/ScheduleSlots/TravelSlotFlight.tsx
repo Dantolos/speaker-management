@@ -28,18 +28,18 @@ export default function TravelSlotFlight({
 
   return (
     <>
-      <div className="bg-white rounded-2xl p-2 w-full flex justify-between">
-        <div className="flex gap-4">
+      <div className="bg-primary/20 rounded-2xl p-2 w-full flex justify-between">
+        <div className="flex gap-4   ">
           <PlaneTakeoff size="30" className=" self-center" />
           <div className="self-center">
             <p>{t("schedule-origin")}</p>
             <p className="text-2xl font-bold">{origin}</p>
           </div>
         </div>
-        <div className="flex items-end flex-col">
+        <div className="flex items-end flex-col ">
           <p>
             {t("schedule-flightnr")}
-            <span className="font-bold bg-gray-200 rounded-2xl p-2 ml-1">
+            <span className="font-bold bg-primary rounded-2xl p-2 ml-1 ">
               {flightNr1}
             </span>
           </p>
@@ -63,7 +63,7 @@ export default function TravelSlotFlight({
         </div>
       </div>
       {via && (
-        <div className="bg-gray-200 rounded-2xl border-gray-300 border-2 p-2 flex justify-between">
+        <div className="bg-primary/20 rounded-2xl border-primary/80 border-2 p-2 flex justify-between">
           <div className=" self-center">
             <p>
               via: <span className="font-bold">{via}</span>
@@ -72,14 +72,14 @@ export default function TravelSlotFlight({
           <div className="flex items-end flex-col">
             <p>
               {t("schedule-flightnr")}
-              <span className="font-bold bg-white rounded-2xl p-2 ml-1">
+              <span className="font-bold bg-primary rounded-2xl p-2 ml-1">
                 {flightNr2}
               </span>
             </p>
           </div>
         </div>
       )}
-      <div className="bg-white rounded-2xl p-2 flex justify-between">
+      <div className="bg-primary/20 rounded-2xl p-2 flex justify-between">
         <div className="flex gap-4">
           <PlaneLanding size="30" className=" self-center" />
           <div className=" self-center">

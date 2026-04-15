@@ -32,7 +32,7 @@ export default function Accordeon({ title, icon, children }: L3AccoredonProps) {
         aria-controls="accordion-content"
       >
         <div className="flex gap-4 items-center ">
-          {icon && <div className="bg-primary/15 rounded-2xl p-2">{icon}</div>}
+          {icon && <div className="bg-primary/20 rounded-2xl p-2">{icon}</div>}
           <h2 className="text-2xl font-bold pb-0 leading-6 translate-y-0.5  ">
             {title}
           </h2>
@@ -57,10 +57,12 @@ export default function Accordeon({ title, icon, children }: L3AccoredonProps) {
       <div
         ref={contentRef}
         id="accordion-content"
-        className={`overflow-hidden transition-max-height duration-500 ease-in-out   px-4`}
+        className={`overflow-hidden transition-max-height duration-500 ease-in-out px-4`}
         style={{ maxHeight }}
       >
-        <div className={`${isOpen && "border-t-1"} border-t-gray-500 py-4`}>
+        <div
+          className={`${isOpen && "border-t-1"} border-t-foreground/60 py-4`}
+        >
           {children}
         </div>
       </div>

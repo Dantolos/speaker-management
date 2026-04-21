@@ -9,14 +9,14 @@ const PAGE_SIZE = 20;
 interface Props {
   searchParams: Promise<{
     q?: string;
-    event?: string; // jetzt eine Record-ID
+    event?: string;
     page?: string;
   }>;
 }
 
 type SpeakerWithEventInfo = Speaker & {
   "Event Name"?: string[];
-  Event?: string[]; // Linked-Record-IDs
+  Event?: string[];
 };
 
 export default async function SpeakerOverviewPage({ searchParams }: Props) {
@@ -48,7 +48,6 @@ export default async function SpeakerOverviewPage({ searchParams }: Props) {
   const allEvents = Array.from(eventMap.entries())
     .map(([id, name]) => ({ id, name }))
     .sort((a, b) => a.name.localeCompare(b.name));
-
   // Filter
   const query = q.toLowerCase().trim();
   const filtered = allSpeakers.filter((s) => {

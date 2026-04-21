@@ -131,6 +131,7 @@ export interface Speaker {
   Transfers?: Transfer[];
   Backstage?: BackstageSlot[];
   Referentenbetreuer?: Referentenbetreuer;
+  Speakerformular_Status?: string;
   // Lookup field added directly in Airtable — returns an array of strings
   "Event Name"?: string[];
   "Speaker Name"?: string;

@@ -12,7 +12,7 @@ import {
   ChevronDown,
   X,
   Check,
-  Eye,
+  SquarePen,
 } from "lucide-react";
 import type { EventListItem } from "@/services/speaker/dashboard";
 import { formatEventDate } from "@/utils/format";
@@ -315,7 +315,7 @@ export default function EventsTable({
                       href={`/events/${event.id}`}
                       className="text-xs font-medium text-primary/60 hover:text-primary hover:scale-110 transition-all duration-200 inline-block"
                     >
-                      <Eye />
+                      <SquarePen size={20} />
                     </Link>
                   </td>
                 </tr>

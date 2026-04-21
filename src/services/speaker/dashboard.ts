@@ -406,7 +406,7 @@ async function fetchKontakteInBatches(
     }),
   );
 
-  return results.flat().map((r) => r.fields);
+  return results.flat().map((r) => ({ id: r.id, ...r.fields }));
 }
 
 function countSingleValues(
@@ -449,3 +449,158 @@ export const getEventMetrics = (airtableId: string) =>
     [`event-metrics-v2-${airtableId}`],
     { revalidate: 60 },
   )();
+
+// ───────────────────────────────────────────────────────────────
+// Globale Metriken über alle Contributions
+// ───────────────────────────────────────────────────────────────
+
+export type ContributionMetric = {
+  eventId: string; // Airtable-Record-ID des Events
+  eventDate: string | undefined;
+  platformName: string | undefined;
+  gender: string | undefined;
+  categories: string[];
+  countries: string[];
+  languages: string[];
+};
+
+export type EventFilterOption = {
+  id: string;
+  name: string;
+};
+
+export type GlobalMetricsData = {
+  contributions: ContributionMetric[];
+  allPlatforms: string[];
+  allEvents: EventFilterOption[];
+};
+
+async function _getGlobalMetrics(): Promise<GlobalMetricsData> {
+  const [allContributionsRaw, allEventsRaw] = await Promise.all([
+    getRecords("Confirmed Contributions"),
+    base("Events")
+      .select({
+        fields: ["Name", "Datum", "platform_name"],
+      })
+      .all(),
+  ]);
+
+  const allContributions = allContributionsRaw as (Record<string, unknown> & {
+    id: string;
+    Event?: string[];
+    Person?: string[];
+  })[];
+
+  // Events indexieren: id → { date, platform, name }
+  const eventMap = new Map<
+    string,
+    { date: string | undefined; platform: string | undefined; name: string }
+  >();
+  for (const e of allEventsRaw) {
+    const platformLookup = e.fields["platform_name"] as string[] | undefined;
+    eventMap.set(e.id, {
+      date: e.fields["Datum"] as string | undefined,
+      platform: platformLookup?.[0],
+      name: e.fields["Name"] as string,
+    });
+  }
+
+  // Alle einzigartigen Person-IDs aus allen Contributions
+  const allPersonIds = Array.from(
+    new Set(allContributions.flatMap((c) => c.Person ?? []).filter(Boolean)),
+  );
+
+  const kontakte = allPersonIds.length
+    ? await fetchKontakteInBatches(allPersonIds)
+    : [];
+
+  // Person-ID zu Kontakt-Daten
+  const personMap = new Map<string, Record<string, unknown>>();
+  for (const k of kontakte) {
+    const personId = (k as { id?: string }).id;
+    if (personId) personMap.set(personId, k);
+  }
+
+  // Pro Contribution: alle relevanten Dimensionen extrahieren
+  const contributions: ContributionMetric[] = [];
+  for (const c of allContributions) {
+    const eventId = c.Event?.[0];
+    const personId = c.Person?.[0];
+    if (!eventId || !personId) continue;
+
+    const event = eventMap.get(eventId);
+    const person = personMap.get(personId);
+
+    contributions.push({
+      eventId,
+      eventDate: event?.date,
+      platformName: event?.platform,
+      gender: person?.["Geschlecht"] as string | undefined,
+      categories: (person?.["Speakerkategorie"] as string[] | undefined) ?? [],
+      countries: (person?.["Land"] as string[] | undefined) ?? [],
+      languages: (person?.["Sprachen"] as string[] | undefined) ?? [],
+    });
+  }
+
+  const allPlatforms = Array.from(
+    new Set(
+      Array.from(eventMap.values())
+        .map((e) => e.platform)
+        .filter((p): p is string => Boolean(p)),
+    ),
+  ).sort();
+
+  const allEvents: EventFilterOption[] = Array.from(eventMap.entries())
+    .map(([id, e]) => ({ id, name: e.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return { contributions, allPlatforms, allEvents };
+}
+
+export const getGlobalMetrics = () =>
+  unstable_cache(_getGlobalMetrics, ["global-metrics-v1"], {
+    revalidate: 60,
+  })();
+
+// ───────────────────────────────────────────────────────────────
+// Aggregation über ContributionMetric[]
+// ───────────────────────────────────────────────────────────────
+
+export function aggregateContributions(contributions: ContributionMetric[]): {
+  gender: MetricBucket[];
+  category: MetricBucket[];
+  country: MetricBucket[];
+  language: MetricBucket[];
+} {
+  const gender = new Map<string, number>();
+  const category = new Map<string, number>();
+  const country = new Map<string, number>();
+  const language = new Map<string, number>();
+
+  for (const c of contributions) {
+    if (c.gender) {
+      gender.set(c.gender, (gender.get(c.gender) ?? 0) + 1);
+    }
+    for (const v of c.categories) {
+      if (v) category.set(v, (category.get(v) ?? 0) + 1);
+    }
+    for (const v of c.countries) {
+      if (v) country.set(v, (country.get(v) ?? 0) + 1);
+    }
+    for (const v of c.languages) {
+      if (v) language.set(v, (language.get(v) ?? 0) + 1);
+    }
+  }
+
+  const toBuckets = (m: Map<string, number>): MetricBucket[] =>
+    Array.from(m.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count);
+
+  return {
+    gender: toBuckets(gender),
+    category: toBuckets(category),
+    country: toBuckets(country),
+    language: toBuckets(language),
+  };
+}

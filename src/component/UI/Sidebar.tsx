@@ -25,7 +25,7 @@ export default function Sidebar({ sectionLabel, links }: Props) {
 
   return (
     <aside
-      className={`border-r border-foreground/10 bg-box-background flex flex-col p-3 shrink-0 transition-all duration-200 ${open ? "w-52" : "w-14"}`}
+      className={`border-r border-foreground/10 bg-box-background flex sticky top-14  h-[calc(100vh-64px)] flex-col   p-3 shrink-0 transition-all duration-200 ${open ? "w-52" : "w-14"}`}
     >
       {/* Toggle */}
       <button

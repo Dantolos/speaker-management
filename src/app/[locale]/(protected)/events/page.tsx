@@ -2,9 +2,15 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { getInternalSession } from "@/utils/auth";
-import { getAllEvents, type EventListItem } from "@/services/speaker/dashboard";
+import {
+  getAllEvents,
+  getGlobalMetrics,
+  aggregateContributions,
+  type EventListItem,
+} from "@/services/speaker/dashboard";
 import { formatEventDate } from "@/utils/format";
 import EventsTabs from "@/component/Pages/Events/EventsTabs";
+import DonutMini from "@/component/Pages/Events/DonutMini";
 
 function isUpcoming(isoDate: string | undefined): boolean {
   if (!isoDate) return false; // ohne Datum → "Vergangen"
@@ -27,9 +33,15 @@ export default async function EventsOverviewPage({ searchParams }: Props) {
   }
 
   const { tab = "upcoming" } = await searchParams;
-  const t = await getTranslations("EventsOverview");
-  const format = await getFormatter();
-  const allEvents = await getAllEvents();
+
+  const [allEvents, globalMetrics, t, format] = await Promise.all([
+    getAllEvents(),
+    getGlobalMetrics(),
+    getTranslations("EventsOverview"),
+    getFormatter(),
+  ]);
+
+  const topMetrics = aggregateContributions(globalMetrics.contributions);
 
   // Aufsplitten
   const upcoming = allEvents
@@ -45,6 +57,17 @@ export default async function EventsOverviewPage({ searchParams }: Props) {
   return (
     <div className="p-8 max-w-[1200px] mx-auto">
       <h1 className="text-3xl font-bold mb-6">{t("title")}</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        <div className="rounded-2xl border border-foreground/10 bg-background p-5">
+          <p className="text-sm font-medium mb-3">{t("overviewGender")}</p>
+          <DonutMini data={topMetrics.gender} />
+        </div>
+        <div className="rounded-2xl border border-foreground/10 bg-background p-5">
+          <p className="text-sm font-medium mb-3">{t("overviewCategory")}</p>
+          <DonutMini data={topMetrics.category} />
+        </div>
+      </div>
 
       <EventsTabs
         activeTab={tab === "past" ? "past" : "upcoming"}

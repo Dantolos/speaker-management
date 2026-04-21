@@ -51,13 +51,6 @@ export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { locale, stripped, hadLocalePrefix } = resolveLocale(pathname);
 
-  console.log("MIDDLEWARE", {
-    pathname,
-
-    hasSpeakerCookie: !!request.cookies.get("_auth_speaker"),
-    hasInternalCookie: !!request.cookies.get("_auth_internal"),
-  });
-
   // Für den redirect-Parameter nutzen wir immer eine Version MIT Locale,
   // damit der User nach Login/Access auf die Seite mit korrektem Locale zurück kommt
   const redirectTarget = hadLocalePrefix ? pathname : `/${locale}${pathname}`;

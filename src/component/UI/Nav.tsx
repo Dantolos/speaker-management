@@ -42,7 +42,7 @@ export default function Nav({ locale, email }: Props) {
   }, []);
 
   return (
-    <nav className="bg-box-background border-b border-foreground/10 px-6 flex items-center justify-between h-14">
+    <nav className="bg-box-background border-b border-foreground/10 px-6 flex items-center justify-between h-14 sticky top-0">
       <div className="flex items-center gap-8">
         <Image
           src="/assets/linden-icon.svg"

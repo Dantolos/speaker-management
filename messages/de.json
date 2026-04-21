@@ -191,6 +191,9 @@
     "emptyUpcoming": "Keine kommenden Events",
     "emptyPast": "Keine vergangenen Events",
     "missingConfig": "Ohne Config",
-    "confirmedSpeakers": "{count, plural, =0 {Keine bestätigten Speaker} one {bestätigter Speaker} other {bestätigte Speaker}}"
+    "confirmedSpeakers": "{count, plural, =0 {Keine bestätigten Speaker} one {bestätigter Speaker} other {bestätigte Speaker}}",
+    "overviewGender": "Geschlechterverteilung",
+    "overviewCategory": "Speaker-Kategorien",
+    "metricsEmpty": "Keine Daten"
   }
 }

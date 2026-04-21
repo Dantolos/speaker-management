@@ -2,13 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Users, Calendar, Hotel, Plus } from "lucide-react";
 import { getTranslations, getFormatter } from "next-intl/server";
-import { getValidToken } from "@/utils/directusAuth";
+
 import { getGlobalDashboard } from "@/services/speaker/dashboard";
 import { formatEventDate } from "@/utils/format";
-
-interface Props {
-  params: Promise<{ locale: string }>;
-}
+import { getInternalSession } from "@/utils/auth";
 
 const tiles = [
   {
@@ -37,11 +34,11 @@ const tiles = [
   },
 ];
 
-export default async function DashboardPage({ params }: Props) {
-  const { locale } = await params;
-  const token = await getValidToken();
-  if (!token) redirect(`/${locale}/sign-in`);
-
+export default async function DashboardPage() {
+  const session = await getInternalSession();
+  if (!session.isAuthenticated) {
+    redirect("/sign-in?redirect=/events&type=team");
+  }
   const [data, t, format] = await Promise.all([
     getGlobalDashboard(),
     getTranslations("Dashboard"),

@@ -145,6 +145,7 @@ export default function SpeakerTable({
             <tr className="border-b border-foreground/10 bg-primary/5 text-left text-xs font-semibold text-foreground uppercase tracking-wide">
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Event</th>
+              <th className="px-4 py-3">Form Status</th>
               <th className="px-4 py-3 w-10" />
             </tr>
           </thead>
@@ -178,6 +179,20 @@ export default function SpeakerTable({
                       </Link>
                     ) : (
                       (speaker["Event Name"]?.[0] ?? "—")
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-foreground/60">
+                    {speaker["Speakerformular_Status"] &&
+                      speaker["Speakerformular_Status"] === "Eingereicht" && (
+                        <div className="h-3 w-3 rounded-2xl bg-green-400"></div>
+                      )}
+                    {speaker["Speakerformular_Status"] &&
+                      speaker["Speakerformular_Status"] ===
+                        "Nicht eingereicht" && (
+                        <div className="h-3 w-3 rounded-2xl bg-red-700"></div>
+                      )}
+                    {!speaker["Speakerformular_Status"] && (
+                      <div className="h-3 w-3 rounded-2xl bg-foreground/20"></div>
                     )}
                   </td>
 

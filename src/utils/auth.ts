@@ -1,35 +1,70 @@
 import { getIronSession, SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
 
-export interface SessionData {
+// ── Types ──────────────────────────────────────────────────────────────────
+
+export interface InternalSessionData {
   isAuthenticated?: boolean;
+  directusToken?: string;
+  refreshToken?: string;
+  email?: string;
 }
 
-export const sessionOptions: SessionOptions = {
+export interface SpeakerSessionData {
+  isAuthenticated?: boolean;
+  eventId?: string;
+}
+
+// ── Internal Session (Directus Login) ─────────────────────────────────────
+
+export const internalSessionOptions: SessionOptions = {
   password: process.env.IRON_SESSION_SECRET!,
-  cookieName: "_auth",
+  cookieName: "_auth_internal",
   cookieOptions: {
     secure: process.env.NODE_ENV === "production",
     path: "/",
   },
 };
 
-export async function getSession() {
+export async function getInternalSession() {
   const cookieStore = await cookies();
-
-  return await getIronSession<SessionData>(cookieStore, sessionOptions);
+  return getIronSession<InternalSessionData>(
+    cookieStore,
+    internalSessionOptions,
+  );
 }
 
-export const teamSessionOptions: SessionOptions = {
-  password: process.env.IRON_SESSION_SECRET_TEAM!, // different secret or reuse the same
-  cookieName: "_auth_team",
+// ── Speaker Session (Event-Passwort) ──────────────────────────────────────
+
+export const speakerSessionOptions: SessionOptions = {
+  password: process.env.IRON_SESSION_SECRET!,
+  cookieName: "_auth_speaker",
   cookieOptions: {
     secure: process.env.NODE_ENV === "production",
-    path: "/", // or "/" if shared domain but different cookie
+    path: "/",
   },
 };
 
-export async function getTeamSession() {
+export async function getSpeakerSession() {
   const cookieStore = await cookies();
-  return await getIronSession<SessionData>(cookieStore, teamSessionOptions);
+  return getIronSession<SpeakerSessionData>(cookieStore, speakerSessionOptions);
+}
+
+// ── Backwards compatibility ────────────────────────────────────────────────
+
+/** @deprecated use getInternalSession */
+export const getSession = getInternalSession;
+/** @deprecated use getSpeakerSession */
+export const getTeamSession = getSpeakerSession;
+
+// ── Logout ────────────────────────────────────────────────────────────────
+
+export async function logoutInternal() {
+  const session = await getInternalSession();
+  session.destroy();
+}
+
+export async function logoutSpeaker() {
+  const session = await getSpeakerSession();
+  session.destroy();
 }

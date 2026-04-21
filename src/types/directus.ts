@@ -1,10 +1,13 @@
 // types/directus.ts
 export interface DirectusSchema {
   events: Events[];
+  themes: Themes[];
 }
 
 export interface Events {
   id: string;
+  airtable_id?: string;
+  access_password?: string;
   event_name: string;
   theme?: Themes;
   content_display?: string[];

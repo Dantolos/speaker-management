@@ -6,7 +6,7 @@ import type { DeepPartialSpeaker } from "@/types/speaker";
 // Base
 // ---------------------------------------------------------------------------
 
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+export const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID!,
 );
 
@@ -48,6 +48,7 @@ const FIELDS = {
     "Ende",
     "Location",
     "Plattformen",
+    "Anzahl (Speakers Bestätigt)",
   ],
   Platforms: ["Conference Name"],
   Orte: ["Name", "Strasse", "Hausnummer", "PLZ", "Stadt", "Land"],
@@ -276,7 +277,6 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
         )
       : Promise.resolve(null),
 
-    // 👇 explizit als RawSessionRecord typisiert — kein any mehr nötig
     fetchMany<RawSessionRecord>(
       "Sessions",
       root.Sessions ?? [],

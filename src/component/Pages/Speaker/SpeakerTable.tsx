@@ -4,15 +4,15 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useTransition } from "react";
 import Link from "next/link";
 import type { Speaker } from "@/types/speaker";
-import { Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X, Eye } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 interface Props {
-  speakers: (Speaker & { "Event Name"?: string[] })[];
-  allEvents: string[];
+  speakers: (Speaker & { "Event Name"?: string[]; Event?: string[] })[];
+  allEvents: { id: string; name: string }[];
   totalCount: number;
   totalPages: number;
   currentPage: number;
@@ -103,7 +103,7 @@ export default function SpeakerTable({
             placeholder="Search speakers…"
             defaultValue={currentSearch}
             onChange={handleSearch}
-            className="w-full pl-9 pr-4 py-2 rounded-xl border border-primary bg-primary/20 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
+            className="w-full pl-9 pr-4 py-2 rounded-xl border border-primary bg-primary/10 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
           />
         </div>
 
@@ -111,12 +111,12 @@ export default function SpeakerTable({
         <select
           value={currentEvent}
           onChange={handleEventFilter}
-          className="py-2 px-3 rounded-xl border border-primary bg-primary/20 text-sm focus:outline-none focus:ring-2 focus:ring-secondary min-w-[160px]"
+          className="py-2 px-3 rounded-xl border border-primary bg-primary/10 text-sm focus:outline-none focus:ring-2 focus:ring-secondary min-w-[160px]"
         >
           <option value="">All Events</option>
           {allEvents.map((ev) => (
-            <option key={ev} value={ev}>
-              {ev}
+            <option key={ev.id} value={ev.id}>
+              {ev.name}
             </option>
           ))}
         </select>
@@ -168,15 +168,26 @@ export default function SpeakerTable({
                     {speaker["Speaker Name"] ?? speaker.Name ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-foreground/60">
-                    {speaker["Event Name"]?.[0] ?? "—"}
+                    {speaker.Event?.[0] ? (
+                      <Link
+                        href={`/events/${speaker.Event[0]}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-primary/60 hover:text-primary transition-colors"
+                      >
+                        {speaker["Event Name"]?.[0] ?? "—"}
+                      </Link>
+                    ) : (
+                      (speaker["Event Name"]?.[0] ?? "—")
+                    )}
                   </td>
 
                   <td className="px-4 py-3 text-right ">
                     <Link
                       href={`/speaker/${speaker.id}`}
-                      className="text-xs font-medium text-gray-400 hover:text-gray-900 transition-colors"
+                      target="_blank"
+                      className="text-xs font-medium text-primary/60 hover:text-primary hover:scale-110 transition-all duration-200"
                     >
-                      View →
+                      <Eye />
                     </Link>
                   </td>
                 </tr>

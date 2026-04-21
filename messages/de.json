@@ -2,6 +2,24 @@
   "HomePage": {
     "title": "L3L"
   },
+  "Dashboard": {
+    "welcome": "Willkommen zurück",
+    "title": "Dashboard",
+    "metricSpeakers": "Speaker gesamt",
+    "metricUpcomingEvents": "Kommende Events",
+    "nextEvents": "Kommende Events",
+    "nextBadge": "Nächstes",
+    "speakers": "Speaker",
+    "inDays": "{count, plural, =0 {Heute} one {in 1 Tag} other {in # Tagen}}",
+    "sections": "Bereiche",
+    "tileSpeaker": "Speaker",
+    "tileSpeakerDesc": "Alle Speaker verwalten",
+    "tileEvents": "Events",
+    "tileEventsDesc": "Events & Konfiguration",
+    "tilePartner": "Partner",
+    "tilePartnerDesc": "Partner verwalten",
+    "addTile": "Kachel hinzufügen"
+  },
   "General": {
     "from": "von",
     "till": "bis",
@@ -85,5 +103,94 @@
     "platform-user": "E-Mail",
 
     "pdf-download": "PDF generieren"
+  },
+
+  "SpeakerDashboard": {
+    "navigation": "Einstieg",
+    "allSpeakers": "Alle Speaker",
+    "allSpeakersDescription": "Gesamte Liste aller Contributions",
+    "eventOverview": "Event-Übersicht",
+    "eventOverviewDescription": "Alle vergangenen und kommenden Events",
+    "upcomingEvents": "Kommende Events",
+    "noUpcomingEvents": "Keine kommenden Events",
+    "nextBadge": "Nächstes",
+    "confirmedSpeakers": "{count, plural, =0 {Keine bestätigten Speaker} one {bestätigter Speaker} other {bestätigte Speaker}}"
+  },
+  "SpeakerSidebar": {
+    "sectionLabel": "Speaker",
+    "overview": "Übersicht",
+    "list": "Liste"
+  },
+  "EventsSidebar": {
+    "sectionLabel": "Events",
+    "overview": "Übersicht",
+    "list": "Liste"
+  },
+
+  "EventsList": {
+    "title": "Alle Events",
+    "searchPlaceholder": "Events suchen…",
+    "timeframeAll": "Alle Zeiträume",
+    "timeframeUpcoming": "Kommende",
+    "timeframePast": "Vergangene",
+    "configAll": "Alle Events",
+    "configWith": "Mit Konfiguration",
+    "configWithout": "Ohne Konfiguration",
+    "platformsLabel": "Plattformen",
+    "platformsAll": "Alle Plattformen",
+    "clearFilters": "Zurücksetzen",
+    "eventsSingular": "Event",
+    "eventsPlural": "Events",
+    "colName": "Name",
+    "colDate": "Datum",
+    "colSpeakers": "Speaker",
+    "colPlatform": "Plattform",
+    "colConfig": "Konfig",
+    "configMissing": "Fehlt",
+    "empty": "Keine Events gefunden.",
+    "paginationOf": "von"
+  },
+  "EventDetail": {
+    "title": "Event-Detail",
+    "factsHeading": "Fakten",
+    "factName": "Name",
+    "factDate": "Datum",
+    "factTheme": "Thema",
+    "factPlatform": "Plattform",
+    "factLocation": "Location",
+    "actionsHeading": "Aktionen",
+    "actionSpeakers": "Alle Speaker",
+    "actionSpeakersCount": "{count, plural, =0 {Keine Speaker} one {1 Speaker} other {# Speaker}}",
+    "configHeading": "Konfiguration",
+    "missingConfigText": "Dieses Event hat noch keine Konfiguration in Directus. Ohne Konfiguration ist das Speaker-Dossier nicht öffentlich zugänglich.",
+    "createConfig": "Konfiguration anlegen",
+    "themeLabel": "Theme",
+    "themeHint": "Bestimmt die Farben auf der öffentlichen Speaker-Dossier-Seite.",
+    "themeNone": "— Kein Theme —",
+    "contentDisplayLabel": "Sichtbare Bereiche im Dossier",
+    "contentDisplayHint": "Bereiche, die auf der öffentlichen Speaker-Dossier-Seite angezeigt werden.",
+    "passwordLabel": "Zugangs-Passwort",
+    "passwordHint": "Passwort, mit dem sich Speaker auf der öffentlichen Dossier-Seite anmelden.",
+    "passwordPlaceholder": "z.B. sud26-speaker",
+    "save": "Speichern",
+    "saved": "Gespeichert",
+    "saveError": "Fehler beim Speichern",
+    "metricsHeading": "Speaker-Metriken",
+    "metricsEmpty": "Noch keine Speaker für dieses Event.",
+    "metricsEmptyChart": "Keine Daten",
+    "metricGender": "Geschlecht",
+    "metricCategory": "Speakerkategorie",
+    "metricCountry": "Herkunftsland",
+    "metricLanguage": "Sprachen",
+    "metricLanguageHint": "Speaker können mehrere Sprachen sprechen"
+  },
+  "EventsOverview": {
+    "title": "Events",
+    "tabUpcoming": "Kommend",
+    "tabPast": "Vergangen",
+    "emptyUpcoming": "Keine kommenden Events",
+    "emptyPast": "Keine vergangenen Events",
+    "missingConfig": "Ohne Config",
+    "confirmedSpeakers": "{count, plural, =0 {Keine bestätigten Speaker} one {bestätigter Speaker} other {bestätigte Speaker}}"
   }
 }

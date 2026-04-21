@@ -2,6 +2,24 @@
   "HomePage": {
     "title": "L3L"
   },
+  "Dashboard": {
+    "welcome": "Welcome back",
+    "title": "Dashboard",
+    "metricSpeakers": "Total speakers",
+    "metricUpcomingEvents": "Upcoming events",
+    "nextEvents": "Upcoming events",
+    "nextBadge": "Next",
+    "speakers": "Speakers",
+    "inDays": "{count, plural, =0 {Today} one {in 1 day} other {in # days}}",
+    "sections": "Sections",
+    "tileSpeaker": "Speakers",
+    "tileSpeakerDesc": "Manage all speakers",
+    "tileEvents": "Events",
+    "tileEventsDesc": "Events & configuration",
+    "tilePartner": "Partners",
+    "tilePartnerDesc": "Manage partners",
+    "addTile": "Add tile"
+  },
   "General": {
     "from": "from",
     "till": "till",
@@ -11,6 +29,7 @@
     "program": "Program",
     "note": "Note"
   },
+
   "SignIn": {
     "title": "Welcome to your personal Speaker Dossier",
     "description": "Here you will find all the information you need about your appearance at our event.",
@@ -84,5 +103,93 @@
     "platform-user": "E-Mail",
 
     "pdf-download": "Generate PDF"
+  },
+  "SpeakerDashboard": {
+    "navigation": "Get started",
+    "allSpeakers": "All speakers",
+    "allSpeakersDescription": "Complete list of all contributions",
+    "eventOverview": "Event overview",
+    "eventOverviewDescription": "All past and upcoming events",
+    "upcomingEvents": "Upcoming events",
+    "noUpcomingEvents": "No upcoming events",
+    "nextBadge": "Next",
+    "confirmedSpeakers": "{count, plural, =0 {no confirmed speakers} one {confirmed speaker} other {confirmed speakers}}"
+  },
+  "SpeakerSidebar": {
+    "sectionLabel": "Speakers",
+    "overview": "Overview",
+    "list": "List"
+  },
+  "EventsSidebar": {
+    "sectionLabel": "Events",
+    "overview": "Overview",
+    "list": "List"
+  },
+
+  "EventsList": {
+    "title": "All events",
+    "searchPlaceholder": "Search events…",
+    "timeframeAll": "All timeframes",
+    "timeframeUpcoming": "Upcoming",
+    "timeframePast": "Past",
+    "configAll": "All events",
+    "configWith": "With configuration",
+    "configWithout": "Without configuration",
+    "platformsLabel": "Platforms",
+    "platformsAll": "All platforms",
+    "clearFilters": "Clear",
+    "eventsSingular": "event",
+    "eventsPlural": "events",
+    "colName": "Name",
+    "colDate": "Date",
+    "colSpeakers": "Speakers",
+    "colPlatform": "Platform",
+    "colConfig": "Config",
+    "configMissing": "Missing",
+    "empty": "No events found.",
+    "paginationOf": "of"
+  },
+  "EventDetail": {
+    "title": "Event detail",
+    "factsHeading": "Facts",
+    "factName": "Name",
+    "factDate": "Date",
+    "factTheme": "Theme",
+    "factPlatform": "Platform",
+    "factLocation": "Location",
+    "actionsHeading": "Actions",
+    "actionSpeakers": "All speakers",
+    "actionSpeakersCount": "{count, plural, =0 {No speakers} one {1 speaker} other {# speakers}}",
+    "configHeading": "Configuration",
+    "missingConfigText": "This event has no configuration in Directus yet. Without configuration, the speaker dossier is not publicly accessible.",
+    "createConfig": "Create configuration",
+    "themeLabel": "Theme",
+    "themeHint": "Defines the colors on the public speaker dossier page.",
+    "themeNone": "— No theme —",
+    "contentDisplayLabel": "Visible sections in dossier",
+    "contentDisplayHint": "Sections shown on the public speaker dossier page.",
+    "passwordLabel": "Access password",
+    "passwordHint": "Password speakers use to sign in on the public dossier page.",
+    "passwordPlaceholder": "e.g. sud26-speaker",
+    "save": "Save",
+    "saved": "Saved",
+    "saveError": "Error saving",
+    "metricsHeading": "Speaker metrics",
+    "metricsEmpty": "No speakers for this event yet.",
+    "metricsEmptyChart": "No data",
+    "metricGender": "Gender",
+    "metricCategory": "Speaker category",
+    "metricCountry": "Country of origin",
+    "metricLanguage": "Languages",
+    "metricLanguageHint": "Speakers can speak multiple languages"
+  },
+  "EventsOverview": {
+    "title": "Events",
+    "tabUpcoming": "Upcoming",
+    "tabPast": "Past",
+    "emptyUpcoming": "No upcoming events",
+    "emptyPast": "No past events",
+    "missingConfig": "No config",
+    "confirmedSpeakers": "{count, plural, =0 {no confirmed speakers} one {confirmed speaker} other {confirmed speakers}}"
   }
 }

@@ -2,24 +2,21 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
-import {
-  LayoutDashboard,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, type ReactNode } from "react";
 
-const speakerLinks = [
-  { href: "/speaker", label: "Übersicht", icon: <LayoutDashboard size={16} /> },
-  {
-    href: "/speaker/settings",
-    label: "Settings",
-    icon: <Settings size={16} />,
-  },
-];
+export type SidebarLink = {
+  href: string;
+  label: string;
+  icon: ReactNode;
+};
 
-export default function Sidebar() {
+type Props = {
+  sectionLabel: string;
+  links: SidebarLink[];
+};
+
+export default function Sidebar({ sectionLabel, links }: Props) {
   const pathname = usePathname();
   const { locale } = useParams<{ locale: string }>();
   const [open, setOpen] = useState(true);
@@ -41,13 +38,13 @@ export default function Sidebar() {
       {/* Section label */}
       {open && (
         <p className="text-xs font-medium text-foreground/40 px-2 py-1 uppercase tracking-wider">
-          Speaker
+          {sectionLabel}
         </p>
       )}
 
       {/* Links */}
       <div className="flex flex-col gap-1 mt-1">
-        {speakerLinks.map(({ href, label, icon }) => (
+        {links.map(({ href, label, icon }) => (
           <Link
             key={href}
             href={`/${locale}${href}`}

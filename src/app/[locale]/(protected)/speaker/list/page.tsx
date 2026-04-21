@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getTeamSession } from "@/utils/auth";
+import { getInternalSession } from "@/utils/auth";
 import { getRecords } from "@/services/airtable";
 import type { Speaker } from "@/types/speaker";
 import SpeakerTable from "@/component/Pages/Speaker/SpeakerTable";
@@ -9,39 +9,53 @@ const PAGE_SIZE = 20;
 interface Props {
   searchParams: Promise<{
     q?: string;
-    event?: string;
+    event?: string; // jetzt eine Record-ID
     page?: string;
   }>;
 }
 
+type SpeakerWithEventInfo = Speaker & {
+  "Event Name"?: string[];
+  Event?: string[]; // Linked-Record-IDs
+};
+
 export default async function SpeakerOverviewPage({ searchParams }: Props) {
-  const session = await getTeamSession();
+  const session = await getInternalSession();
   if (!session.isAuthenticated) {
-    redirect("/sign-in?redirect=/speaker&type=team");
+    redirect("/sign-in?redirect=/speaker/list&type=team");
   }
 
   const { q = "", event = "", page = "1" } = await searchParams;
   const currentPage = Math.max(1, parseInt(page, 10) || 1);
 
-  // Single fetch — "Event Name" is a lookup field on Confirmed Contributions
+  // Alle Contributions laden
   const allSpeakers = (await getRecords(
     "Confirmed Contributions",
-  )) as (Speaker & {
-    "Event Name"?: string[];
-  })[];
+  )) as SpeakerWithEventInfo[];
 
-  // Unique event names for the dropdown (lookup fields return arrays)
-  const allEvents = Array.from(
-    new Set(allSpeakers.flatMap((s) => s["Event Name"] ?? []).filter(Boolean)),
-  ).sort();
+  // Event-Optionen für das Dropdown — {id, name} statt nur name
+  const eventMap = new Map<string, string>();
+  for (const s of allSpeakers) {
+    const ids = s.Event ?? [];
+    const names = s["Event Name"] ?? [];
+    // Annahme: gleicher Index → zusammengehörig
+    ids.forEach((id, i) => {
+      if (id && names[i]) {
+        eventMap.set(id, names[i]);
+      }
+    });
+  }
+  const allEvents = Array.from(eventMap.entries())
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   // Filter
   const query = q.toLowerCase().trim();
   const filtered = allSpeakers.filter((s) => {
     const name = (s["Name"] ?? "").toLowerCase();
-    const eventNames = s["Event Name"] ?? [];
+    const eventIds: string[] = s.Event ?? [];
     return (
-      (!query || name.includes(query)) && (!event || eventNames.includes(event))
+      (!query || name.includes(query)) && (!event || eventIds.includes(event))
     );
   });
 

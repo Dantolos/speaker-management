@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { getSpeaker } from "@/services/airtable";
-import { getSession, getTeamSession } from "@/utils/auth";
+import { getInternalSession, getSpeakerSession } from "@/utils/auth";
 import programDataMapping from "@/services/programMapping";
 
 import Accordeon from "@/component/UI/Accordeon";
@@ -63,12 +63,29 @@ export default async function SpeakerPage({ params }: Props) {
   const { locale, id } = await params;
 
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const [session, sessionTeam] = await Promise.all([
-    getSession(),
-    getTeamSession(),
+  const [session, speakerSession] = await Promise.all([
+    getInternalSession(),
+    getSpeakerSession(),
   ]);
-  if (!session.isAuthenticated && !sessionTeam.isAuthenticated) {
-    redirect(`/sign-in?redirect=/speaker/${id}`);
+  if (!session.isAuthenticated && !speakerSession.isAuthenticated) {
+    redirect(`/speaker-access?redirect=/speaker/${id}`);
+  }
+
+  // ── Event-Zugang prüfen (nur für Speaker Session) ─────────────────────────
+  if (!session.isAuthenticated && speakerSession.isAuthenticated) {
+    const [data] = await Promise.all([getSpeaker(id)]);
+    if (!data) notFound();
+
+    const events = await directus.request(
+      readItems("events", {
+        filter: { event_name: { _eq: data.Event?.Name } },
+        fields: ["id"],
+      }),
+    );
+
+    if (speakerSession.eventId !== events[0]?.id) {
+      redirect(`/speaker-access?redirect=/speaker/${id}`);
+    }
   }
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -87,7 +104,7 @@ export default async function SpeakerPage({ params }: Props) {
   const eventSettings = await directus.request(
     readItems("events", {
       filter: { event_name: { _eq: data.Event?.Name } },
-      fields: ["*", "theme.*"],
+      fields: ["*", { theme: ["*"] }],
     }),
   );
 
@@ -433,7 +450,7 @@ export default async function SpeakerPage({ params }: Props) {
             )}
 
             {/* PDF */}
-            <div className="w-full flex items-center justify-center">
+            <div className="w-full flex items-center justify-center mt-4">
               <ButtonGeneratePdf
                 filename={`${t("pdf-filename")}_${formattedFilename}`}
               />

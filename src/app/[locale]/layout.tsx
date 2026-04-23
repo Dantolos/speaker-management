@@ -26,7 +26,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? "";
   const hideNav =
-    pathname.includes("/speaker/") ||
+    /\/speaker\/rec[A-Za-z0-9]{14}/.test(pathname) ||
     pathname.includes("/speaker-access") ||
     pathname.includes("/sign-in");
 

@@ -13,29 +13,35 @@ import EventConfigForm from "@/component/Pages/Events/EventConfigForm";
 import { getEventMetrics } from "@/services/speaker/dashboard";
 import EventMetricsCharts from "@/component/Pages/Events/EventMetricsCharts";
 
+import { getEventProgram } from "@/services/speaker/program";
+import ProgramCalendar from "@/component/Pages/Events/Calendar/ProgramCalendar";
+
 interface Props {
   params: Promise<{ locale: string; id: string }>;
 }
 
-export default async function EventDetailPage({ params }: Props) {
-  const { id } = await params;
+export default async function EventDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string; locale: string }>;
+}) {
+  const { id, locale } = await params;
 
   const session = await getInternalSession();
   if (!session.isAuthenticated) {
     redirect(`/sign-in?redirect=/events/${id}&type=team`);
   }
 
-  const [event, themes, contentOptions, metrics, t, format] = await Promise.all(
-    [
+  const [event, themes, contentOptions, metrics, t, format, program] =
+    await Promise.all([
       getEvent(id),
       getAllThemes(),
       getContentDisplayOptions(),
       getEventMetrics(id),
       getTranslations("EventDetail"),
       getFormatter(),
-    ],
-  );
-
+      getEventProgram(id),
+    ]);
   if (!event) notFound();
 
   const dateDisplay =
@@ -125,6 +131,8 @@ export default async function EventDetailPage({ params }: Props) {
       <div className="mt-6">
         <EventMetricsCharts metrics={metrics} />
       </div>
+
+      <ProgramCalendar program={program} locale={locale} />
     </div>
   );
 }

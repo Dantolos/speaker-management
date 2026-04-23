@@ -1,4 +1,4 @@
-import { Calendar, List } from "lucide-react";
+import { Calendar, LayoutDashboard, List } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Sidebar, { type SidebarLink } from "@/component/UI/Sidebar";
 
@@ -13,12 +13,17 @@ export default async function EventsLayout({
     {
       href: "/events",
       label: t("overview"),
-      icon: <Calendar size={16} />,
+      icon: <LayoutDashboard size={16} />,
     },
     {
       href: "/events/list",
       label: t("list"),
       icon: <List size={16} />,
+    },
+    {
+      href: "/events/calendar",
+      label: t("viewCalendar"),
+      icon: <Calendar size={16} />,
     },
   ];
 

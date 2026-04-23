@@ -123,7 +123,8 @@
   "EventsSidebar": {
     "sectionLabel": "Events",
     "overview": "Overview",
-    "list": "List"
+    "list": "List",
+    "viewCalendar": "Calendar"
   },
 
   "EventsList": {
@@ -181,7 +182,16 @@
     "metricCategory": "Speaker category",
     "metricCountry": "Country of origin",
     "metricLanguage": "Languages",
-    "metricLanguageHint": "Speakers can speak multiple languages"
+    "metricLanguageHint": "Speakers can speak multiple languages",
+    "tabProgram": "Program",
+    "noSessions": "No sessions available",
+    "noRoom": "Unassigned",
+    "untitled": "(untitled)",
+    "day": "Day",
+    "start": "Start",
+    "end": "End",
+    "room": "Room",
+    "close": "Close"
   },
   "EventsOverview": {
     "title": "Events",
@@ -193,6 +203,50 @@
     "confirmedSpeakers": "{count, plural, =0 {no confirmed speakers} one {confirmed speaker} other {confirmed speakers}}",
     "overviewGender": "Gender distribution",
     "overviewCategory": "Speaker categories",
-    "metricsEmpty": "No data"
+    "metricsEmpty": "No data",
+    "tabMetrics": "Metrics",
+    "timeframeAll": "All timeframes",
+    "timeframeUpcoming": "Upcoming",
+    "timeframePast": "Past",
+    "platformsLabel": "Platforms",
+    "platformsAll": "All platforms",
+    "eventAll": "All events",
+    "clearFilters": "Clear",
+    "calendarTitle": "Calendar",
+    "calendarSubtitle": "All events at a glance",
+    "backToList": "Back to list",
+    "viewCalendar": "Calendar",
+    "viewMonth": "Month",
+    "viewYear": "Year",
+    "today": "Today",
+    "timeline": "Timeline"
+  },
+  "Charts": {
+    "gender": {
+      "m": "Men",
+      "f": "Women",
+      "d": "Diverse"
+    }
+  },
+  "ContactDetail": {
+    "quickDossier": "Public Dossier (next event)",
+    "copyLink": "Copy link",
+    "open": "Open",
+    "metadataHeading": "Metadata",
+    "gender": "Gender",
+    "languages": "Languages",
+    "kontaktart": "Contact type",
+    "speakerkategorie": "Speaker category",
+    "notesHeading": "Internal notes",
+    "notesEmpty": "No notes yet",
+    "contributionsHeading": "Contributions ({count})",
+    "contributionsEmpty": "No contributions yet",
+    "mandatesHeading": "Mandates ({count})",
+    "mandatesEmpty": "No mandates on record",
+    "genderValues": {
+      "m": "Male",
+      "f": "Female",
+      "d": "Diverse"
+    }
   }
 }

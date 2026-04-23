@@ -47,7 +47,7 @@ function buildRedirect(
   return NextResponse.redirect(url);
 }
 
-export default function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { locale, stripped, hadLocalePrefix } = resolveLocale(pathname);
 

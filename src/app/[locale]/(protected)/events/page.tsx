@@ -11,6 +11,8 @@ import {
 import { formatEventDate } from "@/utils/format";
 import EventsTabs from "@/component/Pages/Events/EventsTabs";
 import DonutMini from "@/component/Pages/Events/DonutMini";
+import MetricsSection from "@/component/Pages/Events/MetricsSection";
+import { translateGender } from "@/utils/charts/genderLabels";
 
 function isUpcoming(isoDate: string | undefined): boolean {
   if (!isoDate) return false; // ohne Datum → "Vergangen"
@@ -23,7 +25,12 @@ function isUpcoming(isoDate: string | undefined): boolean {
 }
 
 interface Props {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{
+    tab?: string;
+    timeframe?: string;
+    platforms?: string;
+    event?: string;
+  }>;
 }
 
 export default async function EventsOverviewPage({ searchParams }: Props) {
@@ -32,16 +39,27 @@ export default async function EventsOverviewPage({ searchParams }: Props) {
     redirect("/sign-in?redirect=/events&type=team");
   }
 
-  const { tab = "upcoming" } = await searchParams;
+  const {
+    tab = "upcoming",
+    timeframe = "all",
+    platforms = "",
+    event = "",
+  } = await searchParams;
 
-  const [allEvents, globalMetrics, t, format] = await Promise.all([
+  const [allEvents, globalMetrics, t, tGender, format] = await Promise.all([
     getAllEvents(),
     getGlobalMetrics(),
     getTranslations("EventsOverview"),
+    getTranslations("Charts.gender"),
+
     getFormatter(),
   ]);
 
-  const topMetrics = aggregateContributions(globalMetrics.contributions);
+  const rawTopMetrics = aggregateContributions(globalMetrics.contributions);
+  const topMetrics = {
+    ...rawTopMetrics,
+    gender: translateGender(rawTopMetrics.gender, tGender),
+  };
 
   // Aufsplitten
   const upcoming = allEvents
@@ -52,7 +70,10 @@ export default async function EventsOverviewPage({ searchParams }: Props) {
     .filter((e) => !isUpcoming(e.date))
     .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "")); // desc
 
-  const activeEvents = tab === "past" ? past : upcoming;
+  const activeTab: "upcoming" | "past" | "metrics" =
+    tab === "past" ? "past" : tab === "metrics" ? "metrics" : "upcoming";
+
+  const activeEvents = activeTab === "past" ? past : upcoming;
 
   return (
     <div className="p-8 max-w-[1200px] mx-auto">
@@ -70,14 +91,21 @@ export default async function EventsOverviewPage({ searchParams }: Props) {
       </div>
 
       <EventsTabs
-        activeTab={tab === "past" ? "past" : "upcoming"}
+        activeTab={activeTab}
         upcomingCount={upcoming.length}
         pastCount={past.length}
       />
 
-      {activeEvents.length === 0 ? (
+      {activeTab === "metrics" ? (
+        <MetricsSection
+          globalMetrics={globalMetrics}
+          timeframe={timeframe as "all" | "upcoming" | "past"}
+          platforms={platforms}
+          event={event}
+        />
+      ) : activeEvents.length === 0 ? (
         <p className="text-foreground/60 mt-6">
-          {tab === "past" ? t("emptyPast") : t("emptyUpcoming")}
+          {activeTab === "past" ? t("emptyPast") : t("emptyUpcoming")}
         </p>
       ) : (
         <div className="grid grid-cols-3 gap-3 mt-6">

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import chromium from "@sparticuz/chromium";
 
-export const runtime = "nodejs"; // Puppeteer requires Node.js runtime
+//export const runtime = "nodejs"; // Puppeteer requires Node.js runtime
 
 export async function POST(request: Request) {
   const { url } = await request.json();

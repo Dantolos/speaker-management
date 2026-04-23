@@ -162,7 +162,7 @@ async function _getEvent(id: string): Promise<EventDetail | null> {
           .select({
             filterByFormula: `RECORD_ID()='${locationId}'`,
             maxRecords: 1,
-            fields: ["Name", "Strasse", "Hausnummer", "PLZ", "Stadt", "Land"],
+            fields: ["Name", "Strasse", "Hausnummer", "PLZ", "Stadt"],
           })
           .firstPage()
           .then((r) =>
@@ -207,9 +207,11 @@ async function _getEvent(id: string): Promise<EventDetail | null> {
 }
 
 export const getEvent = (id: string) =>
-  unstable_cache(() => _getEvent(id), [`event-detail-${id}`], {
-    revalidate: 60,
-  })();
+  unstable_cache(
+    () => _getEvent(id),
+    ["event-detail", id], // id als separater key-part
+    { revalidate: 60 },
+  )();
 
 async function _getAllThemes(): Promise<ThemeOption[]> {
   const themes = await directus.request(
@@ -243,8 +245,6 @@ export const getAllThemes = () =>
 
 async function _getContentDisplayOptions(): Promise<ContentDisplayOption[]> {
   const field = await directus.request(readField("events", "content_display"));
-
-  //console.log("DEBUG content_display field:", JSON.stringify(field, null, 2));
 
   const choices =
     (field?.meta?.options?.choices as
@@ -343,6 +343,8 @@ export type EventMetrics = {
 
 async function _getEventMetrics(airtableId: string): Promise<EventMetrics> {
   // Contributions aus Airtable (robust, wie in der Speaker-Liste)
+  //
+
   const allContributions = (await getRecords(
     "Confirmed Contributions",
   )) as (Record<string, unknown> & {
@@ -373,7 +375,7 @@ async function _getEventMetrics(airtableId: string): Promise<EventMetrics> {
 
   const gender = countSingleValues(kontakte, "Geschlecht");
   const category = countArrayValues(kontakte, "Speakerkategorie");
-  const country = countArrayValues(kontakte, "Land");
+  const country = countArrayValues(kontakte, "country");
   const language = countArrayValues(kontakte, "Sprachen");
 
   return {
@@ -400,7 +402,7 @@ async function fetchKontakteInBatches(
       return base("Kontakte")
         .select({
           filterByFormula: formula,
-          fields: ["Geschlecht", "Speakerkategorie", "Land", "Sprachen"],
+          fields: ["Geschlecht", "Speakerkategorie", "country", "Sprachen"],
         })
         .all();
     }),
@@ -455,7 +457,7 @@ export const getEventMetrics = (airtableId: string) =>
 // ───────────────────────────────────────────────────────────────
 
 export type ContributionMetric = {
-  eventId: string; // Airtable-Record-ID des Events
+  eventId: string;
   eventDate: string | undefined;
   platformName: string | undefined;
   gender: string | undefined;
@@ -537,7 +539,7 @@ async function _getGlobalMetrics(): Promise<GlobalMetricsData> {
       platformName: event?.platform,
       gender: person?.["Geschlecht"] as string | undefined,
       categories: (person?.["Speakerkategorie"] as string[] | undefined) ?? [],
-      countries: (person?.["Land"] as string[] | undefined) ?? [],
+      countries: (person?.["country"] as string[] | undefined) ?? [],
       languages: (person?.["Sprachen"] as string[] | undefined) ?? [],
     });
   }
@@ -557,10 +559,11 @@ async function _getGlobalMetrics(): Promise<GlobalMetricsData> {
   return { contributions, allPlatforms, allEvents };
 }
 
-export const getGlobalMetrics = () =>
-  unstable_cache(_getGlobalMetrics, ["global-metrics-v1"], {
-    revalidate: 60,
-  })();
+export const getGlobalMetrics = unstable_cache(
+  _getGlobalMetrics,
+  ["global-metrics-v1"],
+  { revalidate: 60 },
+);
 
 // ───────────────────────────────────────────────────────────────
 // Aggregation über ContributionMetric[]

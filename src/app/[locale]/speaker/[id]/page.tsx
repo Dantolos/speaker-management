@@ -117,6 +117,8 @@ export default async function SpeakerPage({ params }: Props) {
       : false;
 
   // ── Derived values ────────────────────────────────────────────────────────
+
+  console.log(data);
   const eventStart = toDate(data.Event?.["Beginn"]);
   const eventEnd = data.Event?.["Ende"] ? toDate(data.Event?.["Ende"]) : null;
   const sessionStart = data.Sessions?.[0]?.["Start (from Sessions NEW)"]
@@ -155,21 +157,16 @@ export default async function SpeakerPage({ params }: Props) {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-      (function() {
-        const root = document.documentElement;
-        root.style.setProperty('--color-primary', '${theme?.primary_color ?? "#9f9577"}');
-        root.style.setProperty('--color-secondary', '${theme?.secondary_color ?? "#3b616e"}');
-        root.style.setProperty('--color-background', '${theme?.background ?? "#ffffff"}');
-        root.style.setProperty('--color-foreground', '${theme?.foreground ?? "#0f0f0f"}');
-        root.style.setProperty('--color-background-dark', '${theme?.foreground ?? "#0f0f0f"}');
-        root.style.setProperty('--color-foreground-dark', '${theme?.background ?? "#ffffff"}');
-      })();
-    `,
-        }}
-      />
+      <style>{`
+          :root {
+            --color-primary: ${theme?.primary_color ?? "#9f9577"};
+            --color-secondary: ${theme?.secondary_color ?? "#3b616e"};
+            --color-background: ${theme?.background ?? "#ffffff"};
+            --color-foreground: ${theme?.foreground ?? "#0f0f0f"};
+            --color-background-dark: ${theme?.foreground ?? "#0f0f0f"};
+            --color-foreground-dark: ${theme?.background ?? "#ffffff"};
+          }
+        `}</style>
       <div className="bg-background text-font-primary min-h-dvh">
         <div className="bg-primary/5 min-h-dvh ">
           <div className="p-8 max-w-[800px] m-auto min-h-dvw">
@@ -455,6 +452,16 @@ export default async function SpeakerPage({ params }: Props) {
                 filename={`${t("pdf-filename")}_${formattedFilename}`}
               />
             </div>
+          </div>{" "}
+          <div className="w-full text-center text-primary/60  text-xs mb-4">
+            © 2025{" "}
+            <Link
+              href="https://livelearninglabs.ch/"
+              target="_blank"
+              className="hover:text-foreground/60"
+            >
+              LINDEN 3L AG
+            </Link>
           </div>
         </div>
       </div>

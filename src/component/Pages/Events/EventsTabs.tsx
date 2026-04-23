@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 type Props = {
-  activeTab: "upcoming" | "past";
+  activeTab: "upcoming" | "past" | "metrics";
   upcomingCount: number;
   pastCount: number;
 };
@@ -19,15 +19,20 @@ export default function EventsTabs({
   const pathname = usePathname();
 
   const tabs = [
-    { key: "upcoming" as const, label: t("tabUpcoming"), count: upcomingCount },
+    {
+      key: "upcoming" as const,
+      label: t("tabUpcoming"),
+      count: upcomingCount,
+    },
     { key: "past" as const, label: t("tabPast"), count: pastCount },
+    { key: "metrics" as const, label: t("tabMetrics"), count: null },
   ];
 
   return (
     <div className="flex gap-1 border-b border-foreground/10">
       {tabs.map(({ key, label, count }) => {
         const isActive = activeTab === key;
-        const href = key === "upcoming" ? pathname : `${pathname}?tab=past`;
+        const href = key === "upcoming" ? pathname : `${pathname}?tab=${key}`;
 
         return (
           <Link
@@ -40,7 +45,9 @@ export default function EventsTabs({
             }`}
           >
             {label}
-            <span className="ml-2 text-xs text-foreground/40">({count})</span>
+            {count !== null && (
+              <span className="ml-2 text-xs text-foreground/40">({count})</span>
+            )}
           </Link>
         );
       })}

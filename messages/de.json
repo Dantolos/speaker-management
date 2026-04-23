@@ -124,7 +124,8 @@
   "EventsSidebar": {
     "sectionLabel": "Events",
     "overview": "Übersicht",
-    "list": "Liste"
+    "list": "Liste",
+    "viewCalendar": "Kalender"
   },
 
   "EventsList": {
@@ -182,7 +183,16 @@
     "metricCategory": "Speakerkategorie",
     "metricCountry": "Herkunftsland",
     "metricLanguage": "Sprachen",
-    "metricLanguageHint": "Speaker können mehrere Sprachen sprechen"
+    "metricLanguageHint": "Speaker können mehrere Sprachen sprechen",
+    "tabProgram": "Programm",
+    "noSessions": "Keine Sessions hinterlegt",
+    "noRoom": "Ohne Raum",
+    "untitled": "(ohne Titel)",
+    "day": "Tag",
+    "start": "Start",
+    "end": "Ende",
+    "room": "Raum",
+    "close": "Schließen"
   },
   "EventsOverview": {
     "title": "Events",
@@ -194,6 +204,51 @@
     "confirmedSpeakers": "{count, plural, =0 {Keine bestätigten Speaker} one {bestätigter Speaker} other {bestätigte Speaker}}",
     "overviewGender": "Geschlechterverteilung",
     "overviewCategory": "Speaker-Kategorien",
-    "metricsEmpty": "Keine Daten"
+    "metricsEmpty": "Keine Daten",
+    "tabMetrics": "Metriken",
+    "timeframeAll": "Alle Zeiträume",
+    "timeframeUpcoming": "Kommende",
+    "timeframePast": "Vergangene",
+    "platformsLabel": "Plattformen",
+    "platformsAll": "Alle Plattformen",
+    "eventAll": "Alle Events",
+    "clearFilters": "Zurücksetzen",
+    "calendarTitle": "Kalender",
+    "calendarSubtitle": "Alle Events im Überblick",
+    "backToList": "Zurück zur Liste",
+    "viewCalendar": "Kalender",
+    "viewMonth": "Monat",
+    "viewYear": "Jahr",
+    "today": "Heute",
+    "timeline": "Timeline"
+  },
+  "Charts": {
+    "gender": {
+      "m": "Männer",
+      "f": "Frauen",
+      "d": "Divers"
+    }
+  },
+
+  "ContactDetail": {
+    "quickDossier": "Öffentliches Dossier (nächstes Event)",
+    "copyLink": "Link kopieren",
+    "open": "Öffnen",
+    "metadataHeading": "Metadaten",
+    "gender": "Geschlecht",
+    "languages": "Sprachen",
+    "kontaktart": "Kontaktart",
+    "speakerkategorie": "Speakerkategorie",
+    "notesHeading": "Interne Notizen",
+    "notesEmpty": "Keine Notizen hinterlegt",
+    "contributionsHeading": "Contributions ({count})",
+    "contributionsEmpty": "Noch keine Contributions",
+    "mandatesHeading": "Mandate ({count})",
+    "mandatesEmpty": "Keine Mandate hinterlegt",
+    "genderValues": {
+      "m": "Männlich",
+      "f": "Weiblich",
+      "d": "Divers"
+    }
   }
 }

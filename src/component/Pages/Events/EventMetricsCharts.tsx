@@ -145,7 +145,7 @@ function DonutChart({
 function BarChart({ data, color }: { data: MetricBucket[]; color: string }) {
   if (data.length === 0) return <EmptyChart />;
 
-  const barData = data.map((d) => ({
+  const barData = [...data].reverse().map((d) => ({
     label: d.label,
     value: d.count,
   }));

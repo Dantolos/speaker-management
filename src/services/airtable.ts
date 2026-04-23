@@ -14,7 +14,7 @@ export const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
 // Field schema – single source of truth for every table's fields
 // ---------------------------------------------------------------------------
 
-const FIELDS = {
+export const FIELDS = {
   Contributions: [
     "Person",
     "Sessions",
@@ -37,6 +37,7 @@ const FIELDS = {
     "First Name",
     "Phone Number",
     "Sprachen",
+    "country",
   ],
   Mandate: ["Position"],
   Organisationen: ["Name"],
@@ -45,13 +46,19 @@ const FIELDS = {
     "Datum",
     "Thema",
     "Beginn",
+    "Sessions",
     "Ende",
     "Location",
     "Plattformen",
     "Anzahl (Speakers Bestätigt)",
+    "Text_Teilnehmerfeld",
+    "Text_Teilnehmerfeld_DE",
+    "Link_Website",
+    "Link_Programme",
+    "Link_Speaker",
   ],
   Platforms: ["Conference Name"],
-  Orte: ["Name", "Strasse", "Hausnummer", "PLZ", "Stadt", "Land"],
+  Orte: ["Name", "Strasse", "Hausnummer", "PLZ", "Stadt"],
   Sessions: [
     "Sessiontypus",
     "Sessiontitel",
@@ -59,13 +66,14 @@ const FIELDS = {
     "Session Description",
     "Session Start Time",
     "Session End Time",
-    "Start (from Sessions NEW)",
-    "End (from Sessions NEW)",
+    "session_start_timedate",
+    "session_end_timedate",
     "Room",
     "Raum (from Sessions NEW)",
     "Sessionsprache",
     "Dauer in Minuten",
     "Speaker",
+    "Event",
   ],
   Reisen: [
     "Reisetyp",
@@ -112,6 +120,7 @@ type RawPersonRecord = {
   Sprachen?: string[];
   /** Linked record IDs — resolved in level 2 */
   Mandate?: string[];
+  country?: string;
 };
 
 type RawEventRecord = {
@@ -125,6 +134,11 @@ type RawEventRecord = {
   Location?: string[];
   /** Linked record IDs — resolved in level 2 */
   Plattformen?: string[];
+  Text_Teilnehmerfeld?: string;
+  Text_Teilnehmerfeld_DE?: string;
+  Link_Website?: string;
+  Link_Programme?: string;
+  Link_Speaker?: string;
 };
 
 type RawMandateRecord = {
@@ -163,7 +177,8 @@ type RawKontaktRecord = {
   "Last Name"?: string;
   "First Name"?: string;
   "Phone Number"?: string;
-  Sprachen?: string[];
+  Sprachen?: string;
+  country?: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -333,7 +348,6 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
         ? fetchOne("Kontakte", referentenbetreuer.Kontakte[0], FIELDS.Kontakte)
         : Promise.resolve(null),
 
-      // 👇 explizit als RawKontaktRecord typisiert
       allSpeakerIds.length
         ? fetchMany<RawKontaktRecord>(
             "Kontakte",
@@ -364,13 +378,32 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
     }));
 
   // Speaker-Objekte den jeweiligen Sessions zuordnen — kein any nötig
-  // da session jetzt RawSessionRecord ist
-  const sessionsWithSpeakers = sessions.map((session: RawSessionRecord) => ({
-    ...session,
-    Speaker: sessionSpeakers.filter((kontakt: RawKontaktRecord) =>
-      session.Speaker?.includes(kontakt.id),
-    ),
-  }));
+
+  const sessionsWithSpeakers: import("@/types/speaker").Session[] =
+    sessions.map((session: RawSessionRecord) => ({
+      id: session.id,
+      Sessiontitel: session.Sessiontitel,
+      "Session-Untertitel": session["Session-Untertitel"],
+      Sessiontypus: session.Sessiontypus,
+      Sessionsprache: session.Sessionsprache,
+      "Session Start Time": session["Session Start Time"],
+      "Session End Time": session["Session End Time"],
+      "Start (from Sessions NEW)": session["Start (from Sessions NEW)"],
+      "End (from Sessions NEW)": session["End (from Sessions NEW)"],
+      Room: session.Room,
+      "Dauer in Minuten": session["Dauer in Minuten"],
+      Speaker: sessionSpeakers
+        .filter((kontakt) => session.Speaker?.includes(kontakt.id))
+        .map<import("@/types/speaker").Person>((kontakt) => ({
+          id: kontakt.id,
+          "Speaker Name": kontakt["Speaker Name"],
+          "First Name": kontakt["First Name"],
+          "Last Name": kontakt["Last Name"],
+          "Phone Number": kontakt["Phone Number"],
+          Sprachen: kontakt.Sprachen ? [kontakt.Sprachen] : undefined,
+          // Mandate bewusst nicht gesetzt — nur im Root-Speaker resolved
+        })),
+    }));
 
   // ── Assemble ──────────────────────────────────────────────────────────────
   return {
@@ -386,6 +419,11 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
           Ende: event.Ende,
           Location: location ?? undefined,
           Plattformen: platform ?? undefined,
+          TextTLN_en: event.Text_Teilnehmerfeld ?? undefined,
+          TextTLN_de: event.Text_Teilnehmerfeld_DE ?? undefined,
+          Link_Website: event.Link_Website ?? undefined,
+          Link_Programme: event.Link_Programme ?? undefined,
+          Link_Speaker: event.Link_Speaker ?? undefined,
         } satisfies import("@/types/speaker").Event)
       : undefined,
     Hotel: hotel ?? undefined,

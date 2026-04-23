@@ -52,6 +52,11 @@ export interface Event {
   Ende?: string;
   Location?: Address;
   Plattformen?: Platform;
+  TextTLN_en?: string;
+  TextTLN_de?: string;
+  Link_Website?: string;
+  Link_Programme?: string;
+  Link_Speaker?: string;
 }
 
 export interface Session {

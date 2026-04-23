@@ -1,4 +1,3 @@
-//import { NextIntlClientProvider } from "next-intl";
 import type { Metadata } from "next";
 
 type Props = {
@@ -23,19 +22,7 @@ export default async function RootLayout({ children }: Props) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-title" content="L3L MGMT" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-            (function() {
-              const saved = localStorage.getItem('theme');
-              const prefersDark = saved
-                ? saved === 'dark'
-                : window.matchMedia('(prefers-color-scheme: dark)').matches;
-              if (prefersDark) document.documentElement.classList.add('dark');
-            })();
-          `,
-          }}
-        />
+        <script src="/theme-init.js" async={false} />
       </head>
       <body className="bg-background text-foreground min-h-screen">
         {children}

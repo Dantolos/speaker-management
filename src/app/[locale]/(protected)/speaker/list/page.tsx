@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { getInternalSession } from "@/utils/auth";
 import { getRecords } from "@/services/airtable";
 import type { Speaker } from "@/types/speaker";
-import SpeakerTable from "@/component/Pages/Speaker/SpeakerTable";
+import SpeakerTable, {
+  type SpeakerRow,
+} from "@/component/Pages/Speaker/SpeakerTable";
 
 const PAGE_SIZE = 20;
 
@@ -31,7 +33,7 @@ export default async function SpeakerOverviewPage({ searchParams }: Props) {
   // Alle Contributions laden
   const allSpeakers = (await getRecords(
     "Confirmed Contributions",
-  )) as SpeakerWithEventInfo[];
+  )) as SpeakerRow[];
 
   // Event-Optionen für das Dropdown — {id, name} statt nur name
   const eventMap = new Map<string, string>();

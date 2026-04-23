@@ -61,7 +61,6 @@ function toDate(value: string | undefined, fallback = new Date()): Date {
 
 export default async function SpeakerPage({ params }: Props) {
   const { locale, id } = await params;
-
   // ── Auth ──────────────────────────────────────────────────────────────────
   const [session, speakerSession] = await Promise.all([
     getInternalSession(),
@@ -97,7 +96,7 @@ export default async function SpeakerPage({ params }: Props) {
   ]);
 
   if (!data) notFound();
-
+  console.log(data);
   const ProgramData = await programDataMapping(data);
 
   // ---- get settings -------------------------------------------------------
@@ -118,7 +117,6 @@ export default async function SpeakerPage({ params }: Props) {
 
   // ── Derived values ────────────────────────────────────────────────────────
 
-  console.log(data);
   const eventStart = toDate(data.Event?.["Beginn"]);
   const eventEnd = data.Event?.["Ende"] ? toDate(data.Event?.["Ende"]) : null;
   const sessionStart = data.Sessions?.[0]?.["Start (from Sessions NEW)"]
@@ -153,6 +151,12 @@ export default async function SpeakerPage({ params }: Props) {
       hour: "numeric",
       minute: "2-digit",
     })}`;
+
+  // --- TLN ------------------------------------------------------------------
+  const TLNtext =
+    locale === "de"
+      ? (data.Event?.TextTLN_de ?? data.Event?.TextTLN_en ?? null)
+      : (data.Event?.TextTLN_en ?? data.Event?.TextTLN_de ?? null);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -217,21 +221,27 @@ export default async function SpeakerPage({ params }: Props) {
                 )}
 
                 <div className="flex gap-2 w-full">
-                  <LinkButton
-                    text={tg("website")}
-                    link="https://startupdays.ch/"
-                    icon={<Globe size={30} />}
-                  />
-                  <LinkButton
-                    text={tg("speaker")}
-                    link="https://sud26.startupdays.ch/components/52926"
-                    icon={<Mic size={30} />}
-                  />
-                  <LinkButton
-                    text={tg("program")}
-                    link="https://sud26.startupdays.ch/components/52339"
-                    icon={<Calendar size={30} />}
-                  />
+                  {data.Event?.Link_Website && (
+                    <LinkButton
+                      text={tg("website")}
+                      link={data.Event?.Link_Website}
+                      icon={<Globe size={30} />}
+                    />
+                  )}
+                  {data.Event?.Link_Speaker && (
+                    <LinkButton
+                      text={tg("speaker")}
+                      link={data.Event?.Link_Speaker}
+                      icon={<Mic size={30} />}
+                    />
+                  )}
+                  {data.Event?.Link_Programme && (
+                    <LinkButton
+                      text={tg("program")}
+                      link={data.Event?.Link_Programme}
+                      icon={<Calendar size={30} />}
+                    />
+                  )}
                 </div>
               </div>
             </Accordeon>
@@ -353,7 +363,7 @@ export default async function SpeakerPage({ params }: Props) {
             {contentDisplay &&
               contentDisplay.includes("individualprogram") &&
               ProgramData?.length > 0 && (
-                <div className="break-before-page my-4">
+                <div className="break-before-page mt-4 pb-6 mb-6 border-b-1 border-foreground/60">
                   <div className="rounded-2xl p-4 bg-box-background shadow-xl">
                     <h3 className="text-2xl font-bold border-b pb-2 border-b-foreground/60">
                       {t("section-schedule")}
@@ -399,21 +409,17 @@ export default async function SpeakerPage({ params }: Props) {
               )}
 
             {/* Static sections */}
-            {contentDisplay &&
-              contentDisplay.includes("about") &&
-              [{ key: "section-about", textKey: "about-text" }].map(
-                ({ key, textKey }) => (
-                  <div
-                    key={key}
-                    className="bg-box-background shadow-xl rounded-2xl my-4 p-4"
-                  >
-                    <h3 className="text-2xl font-bold border-b border-b-foreground/60 pb-2 mb-4">
-                      {t(key)}
-                    </h3>
-                    <p>{t(textKey)}</p>
-                  </div>
-                ),
-              )}
+            {contentDisplay && contentDisplay.includes("about") && TLNtext && (
+              <div
+                key={t("section-about")}
+                className="bg-box-background shadow-xl rounded-2xl my-4 p-4"
+              >
+                <h3 className="text-2xl font-bold border-b border-b-foreground/60 pb-2 mb-4">
+                  {t("section-about")}
+                </h3>
+                <p>{TLNtext}</p>
+              </div>
+            )}
 
             {/* Contact */}
             {contentDisplay && contentDisplay.includes("contact") && (
@@ -427,10 +433,20 @@ export default async function SpeakerPage({ params }: Props) {
                       {data.Event?.Plattformen?.["Conference Name"]}
                     </p>
                     <p>c/o LINDEN 3L AG</p>
-                    <p>Weyermannsstrasse 36</p>
-                    <p>3008 Bern</p>
+                    <p>
+                      {data.Event?.Plattformen?.initiator_address +
+                        " " +
+                        data.Event?.Plattformen?.initiator_address_nr ||
+                        "Weyermannsstrasse 36"}
+                    </p>
+                    <p>
+                      {data.Event?.Plattformen?.initiator_plz +
+                        " " +
+                        data.Event?.Plattformen?.initiator_city || "3008 Bern"}
+                    </p>
                     <Link href="mailto:hello@andermatt-dialog.ch">
-                      hello@startupdays.ch
+                      {data.Event?.Plattformen?.platform_email ||
+                        "hello@livelearninglabs.ch"}
                     </Link>
                   </div>
                   <div className="w-[300px]">
@@ -461,6 +477,14 @@ export default async function SpeakerPage({ params }: Props) {
               className="hover:text-foreground/60"
             >
               LINDEN 3L AG
+            </Link>
+            {" | "}
+            <Link
+              href="https://livelearninglabs.ch/impressum/"
+              target="_blank"
+              className="hover:text-foreground/60"
+            >
+              Impressum
             </Link>
           </div>
         </div>

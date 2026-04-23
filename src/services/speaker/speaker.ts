@@ -4,8 +4,8 @@ import type { Session, ProgramData, SessionsByDay } from "@/types/session";
 
 type RawSessionFields = {
   Sessiontitel?: string;
-  "Session Start Time"?: string;
-  "Session End Time"?: string;
+  session_start_timedate?: string;
+  session_end_timedate?: string;
   Room?: string;
   Event?: string[];
 };
@@ -32,8 +32,8 @@ async function _getEventProgram(eventId: string): Promise<ProgramData> {
       return {
         id: r.id,
         title: f.Sessiontitel ?? "",
-        startTime: f["Session Start Time"] ?? "",
-        endTime: f["Session End Time"] ?? "",
+        startTime: f["session_start_timedate"] ?? "",
+        endTime: f["session_end_timedate"] ?? "",
         room: f.Room ?? null,
         eventId: f.Event?.[0] ?? null,
         eventName: null,

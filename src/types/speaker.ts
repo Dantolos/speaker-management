@@ -41,6 +41,13 @@ export interface Person {
 export interface Platform {
   id: string;
   "Conference Name"?: string;
+  initiator_name?: string;
+  initiator_address?: string;
+  initiator_address_nr?: string;
+  initiator_plz?: string;
+  initiator_city?: string;
+  initiator_country?: string;
+  platform_email?: string;
 }
 
 export interface Event {
@@ -57,6 +64,10 @@ export interface Event {
   Link_Website?: string;
   Link_Programme?: string;
   Link_Speaker?: string;
+  reponsible_contact_name?: string;
+  reponsible_contact_position?: string;
+  reponsible_contact_email?: string;
+  reponsible_contact_phone?: string;
 }
 
 export interface Session {

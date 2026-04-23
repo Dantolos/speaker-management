@@ -15,7 +15,9 @@ export default function Schedule({ ProgramData }: ScheduleProps) {
   return (
     <>
       {ProgramData.map((slot, index) => {
-        const dateStr = slot.start ?? slot.end;
+        const start = slot.start ? slot.start : slot.session_start_timedate;
+        const end = slot.start ? slot.end : slot.session_end_timedate;
+        const dateStr = start ?? end;
 
         if (!dateStr) return null; // skip if both missing
 
@@ -37,8 +39,8 @@ export default function Schedule({ ProgramData }: ScheduleProps) {
             )}
 
             <ScheduleSlot
-              start={slot.start}
-              end={slot.end}
+              start={start}
+              end={end}
               Type={slot.Sessiontypus}
               scheduleData={slot}
             />

@@ -56,8 +56,21 @@ export const FIELDS = {
     "Link_Website",
     "Link_Programme",
     "Link_Speaker",
+    "reponsible_contact_name",
+    "reponsible_contact_position",
+    "reponsible_contact_email",
+    "reponsible_contact_phone",
   ],
-  Platforms: ["Conference Name"],
+  Platforms: [
+    "Conference Name",
+    "initiator_name",
+    "initiator_address",
+    "initiator_address_nr",
+    "initiator_plz",
+    "initiator_city",
+    "initiator_country",
+    "platform_email",
+  ],
   Orte: ["Name", "Strasse", "Hausnummer", "PLZ", "Stadt"],
   Sessions: [
     "Sessiontypus",
@@ -135,10 +148,14 @@ type RawEventRecord = {
   /** Linked record IDs — resolved in level 2 */
   Plattformen?: string[];
   Text_Teilnehmerfeld?: string;
-  Text_Teilnehmerfeld_DE?: string;
+  Text_Teilnehmerfeld_DE?: { state: string; value: string; isStale: boolean };
   Link_Website?: string;
   Link_Programme?: string;
   Link_Speaker?: string;
+  reponsible_contact_name?: string;
+  reponsible_contact_position?: string;
+  reponsible_contact_email?: string;
+  reponsible_contact_phone?: string;
 };
 
 type RawMandateRecord = {
@@ -162,8 +179,8 @@ type RawSessionRecord = {
   "Session Description"?: string;
   "Session Start Time"?: string;
   "Session End Time"?: string;
-  "Start (from Sessions NEW)"?: string;
-  "End (from Sessions NEW)"?: string;
+  session_start_timedate?: string[];
+  session_end_timedate?: string[];
   Room?: string;
   "Raum (from Sessions NEW)"?: string[];
   Sessionsprache?: string;
@@ -388,8 +405,12 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
       Sessionsprache: session.Sessionsprache,
       "Session Start Time": session["Session Start Time"],
       "Session End Time": session["Session End Time"],
-      "Start (from Sessions NEW)": session["Start (from Sessions NEW)"],
-      "End (from Sessions NEW)": session["End (from Sessions NEW)"],
+      session_start_timedate: session["session_start_timedate"]
+        ? session["session_start_timedate"][0]
+        : "",
+      session_end_timedate: session["session_end_timedate"]
+        ? session["session_end_timedate"][0]
+        : "",
       Room: session.Room,
       "Dauer in Minuten": session["Dauer in Minuten"],
       Speaker: sessionSpeakers
@@ -418,12 +439,40 @@ async function _getSpeaker(id: string): Promise<DeepPartialSpeaker | null> {
           Beginn: event.Beginn,
           Ende: event.Ende,
           Location: location ?? undefined,
-          Plattformen: platform ?? undefined,
+          Plattformen: platform
+            ? {
+                id: platform.id ?? undefined,
+                "Conference Name": platform["Conference Name"] ?? undefined,
+                initiator_name: platform.initiator_name
+                  ? platform.initiator_name[0]
+                  : undefined,
+                initiator_address: platform.initiator_address
+                  ? platform.initiator_address[0]
+                  : undefined,
+                initiator_address_nr: platform.initiator_address_nr
+                  ? platform.initiator_address_nr[0]
+                  : undefined,
+                initiator_plz: platform.initiator_plz
+                  ? platform.initiator_plz[0]
+                  : undefined,
+                initiator_city: platform.initiator_city
+                  ? platform.initiator_city[0]
+                  : undefined,
+                initiator_country: platform.initiator_country
+                  ? platform.initiator_country[0]
+                  : undefined,
+              }
+            : undefined,
+          TextTLN_de: event.Text_Teilnehmerfeld_DE?.value ?? undefined,
           TextTLN_en: event.Text_Teilnehmerfeld ?? undefined,
-          TextTLN_de: event.Text_Teilnehmerfeld_DE ?? undefined,
           Link_Website: event.Link_Website ?? undefined,
           Link_Programme: event.Link_Programme ?? undefined,
           Link_Speaker: event.Link_Speaker ?? undefined,
+          reponsible_contact_name: event.reponsible_contact_name ?? undefined,
+          reponsible_contact_position:
+            event.reponsible_contact_position ?? undefined,
+          reponsible_contact_email: event.reponsible_contact_email ?? undefined,
+          reponsible_contact_phone: event.reponsible_contact_phone ?? undefined,
         } satisfies import("@/types/speaker").Event)
       : undefined,
     Hotel: hotel ?? undefined,

@@ -6,8 +6,8 @@ export default async function programDataMapping(
 ): Promise<DeepPartialScheduleType> {
   // console.log(rawSpeakerData);
   const keyMap: { [key: string]: string } = {
-    "Start (from Sessions NEW)": "start", // Sessions
-    "End (from Sessions NEW)": "end",
+    session_start_timedate: "start", // Sessions
+    session_end_timedate: "end",
     Abreisezeit: "start", // Reisen
     Ankunftszeit: "end",
     "Pick Up Time": "start", // Transfers

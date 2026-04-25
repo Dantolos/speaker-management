@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { colorFor } from "@/utils/eventColors";
 import type { CalendarEvent } from "@/services/speaker/eventCalendars";
 
@@ -35,6 +36,10 @@ const MONTHS_EN = [
   "Dec",
 ];
 
+const ZOOM_LEVELS = [1, 3, 6, 12] as const;
+type ZoomLevel = (typeof ZOOM_LEVELS)[number];
+const DEFAULT_ZOOM: ZoomLevel = 3;
+
 function parseLocal(key: string): Date {
   const [y, m, d] = key.split("-").map(Number);
   return new Date(y, m - 1, d);
@@ -63,6 +68,26 @@ export default function YearView({
   const t = useTranslations("EventsOverview");
   const MONTHS = locale === "de" ? MONTHS_DE : MONTHS_EN;
 
+  const [zoom, setZoom] = useState<ZoomLevel>(DEFAULT_ZOOM);
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  // Viewport-Breite messen für Zoom-Berechnung
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // Initiale Messung
+    setViewportWidth(el.clientWidth);
+    const ro = new ResizeObserver(() => {
+      if (scrollRef.current) {
+        setViewportWidth(scrollRef.current.clientWidth);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const yearEvents = events.filter((ev) => {
     const s = parseLocal(ev.start);
     const e = parseLocal(ev.end);
@@ -86,6 +111,19 @@ export default function YearView({
 
   const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   const totalDays = isLeap ? 366 : 365;
+
+  // Logische Timeline-Breite: zeigt `zoom` Monate im Viewport.
+  // Daher: totalWidth / 12 * zoom = viewportWidth → totalWidth = viewportWidth * 12 / zoom
+  const timelineWidth = viewportWidth > 0 ? (viewportWidth * 12) / zoom : 0;
+
+  // Monats-Spalten-Positionen (in px innerhalb der Timeline)
+  const monthOffsets: number[] = [];
+  let acc = 0;
+  for (let m = 0; m < 12; m++) {
+    monthOffsets.push((acc / totalDays) * timelineWidth);
+    acc += daysInMonth(year, m);
+  }
+  monthOffsets.push(timelineWidth); // Ende des Jahres
 
   type Lane = {
     event: CalendarEvent;
@@ -122,178 +160,205 @@ export default function YearView({
   });
 
   const maxLane = Math.max(0, ...lanes.map((l) => l.lane));
-  const timelineBarHeight = (maxLane + 1) * 24;
+  const timelineBarHeight = (maxLane + 1) * 26;
 
   const today = new Date();
   const todayMonth = today.getMonth();
   const todayDate = today.getDate();
   const todayYear = today.getFullYear();
+  const todayDoy = todayYear === year ? dayOfYear(today) - 1 : -1;
+
+  // Initial-Scroll zum heutigen Tag (oder Januar wenn kein "heute" im Jahr)
+  useEffect(() => {
+    if (!scrollRef.current || timelineWidth === 0) return;
+    let scrollTo = 0;
+    if (todayDoy >= 0) {
+      const todayPos = (todayDoy / totalDays) * timelineWidth;
+      // Heute zentriert im Viewport
+      scrollTo = Math.max(0, todayPos - viewportWidth / 2);
+    }
+    scrollRef.current.scrollLeft = scrollTo;
+    // Nur einmal beim Mount oder bei Year-Change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [year, viewportWidth, zoom]);
+
+  function changeZoom(delta: number) {
+    const idx = ZOOM_LEVELS.indexOf(zoom);
+    const next =
+      ZOOM_LEVELS[Math.max(0, Math.min(ZOOM_LEVELS.length - 1, idx + delta))];
+    if (next !== zoom) setZoom(next);
+  }
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div className="w-full min-w-0">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => onNav(year - 1)}
-            style={btnIcon}
+            className="p-1.5 rounded-md border border-[var(--color-border-tertiary,#e5e5e5)] hover:bg-[var(--color-background-secondary,#f5f5f5)] cursor-pointer"
             aria-label="Vorheriges Jahr"
           >
             <ChevronLeft size={16} />
           </button>
-          <span
-            style={{
-              fontSize: 18,
-              fontWeight: 500,
-              minWidth: 80,
-              textAlign: "center",
-            }}
-          >
+          <span className="text-lg font-medium min-w-[80px] text-center">
             {year}
           </span>
           <button
             onClick={() => onNav(year + 1)}
-            style={btnIcon}
+            className="p-1.5 rounded-md border border-[var(--color-border-tertiary,#e5e5e5)] hover:bg-[var(--color-background-secondary,#f5f5f5)] cursor-pointer"
             aria-label="Nächstes Jahr"
           >
             <ChevronRight size={16} />
           </button>
         </div>
-        <button onClick={() => onNav(new Date().getFullYear())} style={btnText}>
-          {t("today")}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onNav(new Date().getFullYear())}
+            className="text-sm px-3 py-1.5 rounded-md border border-[var(--color-border-tertiary,#e5e5e5)] hover:bg-[var(--color-background-secondary,#f5f5f5)] cursor-pointer"
+          >
+            {t("today")}
+          </button>
+        </div>
       </div>
 
       {/* Timeline */}
-      <div
-        style={{
-          border: "1px solid var(--color-border-tertiary, #e5e5e5)",
-          borderRadius: 8,
-          padding: 16,
-          backgroundColor: "var(--color-box-background)",
-          marginBottom: 24,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 11,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            color: "var(--color-text-secondary, #666)",
-            marginBottom: 12,
-          }}
-        >
-          {t("timeline")}
+      <div className="border border-[var(--color-border-tertiary,#e5e5e5)] rounded-lg p-4 bg-[var(--color-box-background)] mb-6 max-w-full overflow-hidden">
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-xs uppercase tracking-wider text-[var(--color-text-secondary,#666)]">
+            {t("timeline")}
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-[var(--color-text-secondary,#666)] mr-2">
+              {zoom} {zoom === 1 ? t("monthSingular") : t("monthPlural")}
+            </span>
+            <button
+              onClick={() => changeZoom(-1)}
+              disabled={zoom === ZOOM_LEVELS[0]}
+              className="p-1.5 rounded-md border border-[var(--color-border-tertiary,#e5e5e5)] hover:bg-[var(--color-background-secondary,#f5f5f5)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              aria-label="Reinzoomen"
+            >
+              <ZoomIn size={14} />
+            </button>
+            <button
+              onClick={() => changeZoom(1)}
+              disabled={zoom === ZOOM_LEVELS[ZOOM_LEVELS.length - 1]}
+              className="p-1.5 rounded-md border border-[var(--color-border-tertiary,#e5e5e5)] hover:bg-[var(--color-background-secondary,#f5f5f5)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              aria-label="Rauszoomen"
+            >
+              <ZoomOut size={14} />
+            </button>
+          </div>
         </div>
 
-        {/* Monats-Header */}
+        {/* Viewport + Scroll-Container in einem */}
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-            borderBottom: "1px solid var(--color-border-tertiary, #e5e5e5)",
+          ref={(el) => {
+            scrollRef.current = el;
+            viewportRef.current = el;
           }}
+          className="relative overflow-x-auto overflow-y-hidden w-full"
+          style={{ scrollBehavior: "smooth" }}
         >
-          {MONTHS.map((m, i) => (
-            <button
-              key={m}
-              onClick={() => onPickMonth(i)}
+          {/* Timeline-Inhalt mit voller logischer Breite */}
+          <div
+            style={{
+              width: timelineWidth > 0 ? `${timelineWidth}px` : "100%",
+            }}
+          >
+            {/* Monats-Header */}
+            <div
+              className="relative border-b border-[var(--color-border-tertiary,#e5e5e5)]"
+              style={{ height: 28 }}
+            >
+              {MONTHS.map((m, i) => {
+                const left = monthOffsets[i];
+                const width = monthOffsets[i + 1] - monthOffsets[i];
+                return (
+                  <button
+                    key={m}
+                    onClick={() => onPickMonth(i)}
+                    className="absolute top-0 text-left px-2 py-1.5 text-xs text-[var(--color-text-secondary,#666)] hover:bg-[var(--color-background-secondary,#f5f5f5)] cursor-pointer truncate"
+                    style={{
+                      left,
+                      width,
+                      borderRight:
+                        i < 11
+                          ? "1px solid var(--color-border-tertiary, #e5e5e5)"
+                          : "none",
+                    }}
+                  >
+                    {m}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Event-Balken */}
+            <div
+              className="relative"
               style={{
-                textAlign: "left",
-                padding: "6px 8px",
-                fontSize: 11,
-                color: "var(--color-text-secondary, #666)",
-                borderRight:
-                  i < 11
-                    ? "1px solid var(--color-border-tertiary, #e5e5e5)"
-                    : "none",
-                background: "transparent",
-                border: "none",
-                borderBottom: "none",
-                cursor: "pointer",
+                height: Math.max(48, timelineBarHeight + 16),
+                marginTop: 8,
               }}
             >
-              {m}
-            </button>
-          ))}
-        </div>
+              {/* Monats-Trennlinien */}
+              {MONTHS.map(
+                (_, i) =>
+                  i > 0 && (
+                    <div
+                      key={`sep-${i}`}
+                      className="absolute top-0 bottom-0 border-l border-[var(--color-border-tertiary,#eee)] pointer-events-none"
+                      style={{ left: monthOffsets[i] }}
+                    />
+                  ),
+              )}
 
-        {/* Event-Balken */}
-        <div
-          style={{
-            position: "relative",
-            height: Math.max(48, timelineBarHeight + 8),
-            marginTop: 8,
-          }}
-        >
-          {todayYear === year && (
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                width: 1,
-                backgroundColor: "var(--color-primary)",
-                opacity: 0.6,
-                left: `${((dayOfYear(today) - 1) / totalDays) * 100}%`,
-                pointerEvents: "none",
-              }}
-            />
-          )}
-          {lanes.map((l, i) => {
-            const fallback = colorFor(l.event.colorIndex);
-            const primary = l.event.themeColor ?? fallback.fg;
-            const background = l.event.themeBackground ?? fallback.bg;
-            const leftPct = (l.startDoy / totalDays) * 100;
-            const widthPct = ((l.endDoy - l.startDoy + 1) / totalDays) * 100;
+              {/* Heute-Linie */}
+              {todayDoy >= 0 && timelineWidth > 0 && (
+                <div
+                  className="absolute top-0 bottom-0 w-px bg-[var(--color-primary)] opacity-60 pointer-events-none"
+                  style={{ left: (todayDoy / totalDays) * timelineWidth }}
+                />
+              )}
 
-            return (
-              <Link
-                key={`${l.event.id}-${i}`}
-                href={`/${locale}/events/${l.event.id}`}
-                style={{
-                  position: "absolute",
-                  top: l.lane * 24,
-                  left: `${leftPct}%`,
-                  width: `calc(${widthPct}% - 2px)`,
-                  minWidth: 6,
-                  height: 20,
-                  fontSize: 11,
-                  padding: "2px 8px",
-                  borderRadius: 4,
-                  backgroundColor: background,
-                  color: primary,
-                  borderLeft: `3px solid ${primary}`,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  textDecoration: "none",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                title={`${l.event.name} · ${l.event.start} – ${l.event.end}`}
-              >
-                {l.event.name}
-              </Link>
-            );
-          })}
+              {/* Event-Balken */}
+              {timelineWidth > 0 &&
+                lanes.map((l, i) => {
+                  const fallback = colorFor(l.event.colorIndex);
+                  const primary = l.event.themeColor ?? fallback.fg;
+                  const background = l.event.themeBackground ?? fallback.bg;
+                  const left = (l.startDoy / totalDays) * timelineWidth;
+                  const width =
+                    ((l.endDoy - l.startDoy + 1) / totalDays) * timelineWidth -
+                    2;
+
+                  return (
+                    <Link
+                      key={`${l.event.id}-${i}`}
+                      href={`/${locale}/events/${l.event.id}`}
+                      className="absolute text-[11px] px-2 rounded flex items-center truncate hover:opacity-80 transition"
+                      style={{
+                        top: l.lane * 26,
+                        left,
+                        width: Math.max(6, width),
+                        height: 22,
+                        backgroundColor: background,
+                        color: primary,
+                        borderLeft: `3px solid ${primary}`,
+                      }}
+                      title={`${l.event.name} · ${l.event.start} – ${l.event.end}`}
+                    >
+                      {l.event.name}
+                    </Link>
+                  );
+                })}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* 12 Mini-Monate */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: 16,
-        }}
-      >
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {Array.from({ length: 12 }, (_, m) => (
           <MiniMonth
             key={m}
@@ -347,99 +412,47 @@ function MiniMonth({
   return (
     <button
       onClick={onClick}
-      style={{
-        textAlign: "left",
-        border: "1px solid var(--color-border-tertiary, #e5e5e5)",
-        borderRadius: 8,
-        padding: 12,
-        backgroundColor: "var(--color-box-background)",
-        cursor: "pointer",
-      }}
+      className="text-left border border-[var(--color-border-tertiary,#e5e5e5)] rounded-lg p-3 bg-[var(--color-box-background)] hover:border-[var(--color-border-secondary,#ccc)] transition cursor-pointer"
     >
-      <div
-        style={{
-          fontSize: 14,
-          fontWeight: 500,
-          marginBottom: 8,
-          color: "var(--color-font-primary)",
-        }}
-      >
+      <div className="text-sm font-medium mb-2 text-[var(--color-font-primary)]">
         {monthName}
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
-          gap: 2,
-          fontSize: 10,
-          color: "var(--color-text-secondary, #888)",
-          marginBottom: 4,
-        }}
-      >
+      <div className="grid grid-cols-7 gap-0.5 text-[10px] text-[var(--color-text-secondary,#888)] mb-1">
         {DAYS_MINI.map((d, i) => (
-          <div key={i} style={{ textAlign: "center" }}>
+          <div key={i} className="text-center">
             {d}
           </div>
         ))}
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
-          gap: 2,
-        }}
-      >
+      <div className="grid grid-cols-7 gap-0.5">
         {cells.map((d, i) => {
-          if (d === null) return <div key={i} style={{ height: 24 }} />;
+          if (d === null) return <div key={i} className="h-6" />;
           const dayEvents = eventsByDate.get(`${month}-${d}`) ?? [];
           const isToday = isCurrentMonth && d === todayDate;
           return (
             <div
               key={i}
-              style={{
-                position: "relative",
-                height: 24,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "flex-start",
-                paddingTop: 2,
-              }}
+              className="relative h-6 flex flex-col items-center justify-start pt-0.5"
             >
               <div
-                style={{
-                  fontSize: 10,
-                  width: 16,
-                  height: 16,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: isToday ? "#fff" : "var(--color-font-primary)",
-                  ...(isToday
-                    ? {
-                        backgroundColor: "var(--color-primary)",
-                        borderRadius: "50%",
-                        fontWeight: 500,
-                      }
-                    : {}),
-                }}
+                className={`text-[10px] w-4 h-4 flex items-center justify-center ${
+                  isToday
+                    ? "bg-[var(--color-primary)] text-white rounded-full font-medium"
+                    : "text-[var(--color-font-primary)]"
+                }`}
               >
                 {d}
               </div>
               {dayEvents.length > 0 && (
-                <div style={{ display: "flex", gap: 2, marginTop: 2 }}>
+                <div className="flex gap-0.5 mt-0.5">
                   {dayEvents.slice(0, 3).map((ev, idx) => {
                     const fallback = colorFor(ev.colorIndex);
                     const dot = ev.themeColor ?? fallback.dot;
                     return (
                       <div
                         key={idx}
-                        style={{
-                          width: 4,
-                          height: 4,
-                          borderRadius: "50%",
-                          backgroundColor: dot,
-                        }}
+                        className="w-1 h-1 rounded-full"
+                        style={{ backgroundColor: dot }}
                       />
                     );
                   })}
@@ -452,25 +465,3 @@ function MiniMonth({
     </button>
   );
 }
-
-const btnIcon: React.CSSProperties = {
-  padding: 6,
-  borderRadius: 6,
-  border: "1px solid var(--color-border-tertiary, #e5e5e5)",
-  background: "transparent",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "var(--color-font-primary)",
-};
-
-const btnText: React.CSSProperties = {
-  padding: "6px 12px",
-  borderRadius: 6,
-  border: "1px solid var(--color-border-tertiary, #e5e5e5)",
-  background: "transparent",
-  cursor: "pointer",
-  fontSize: 13,
-  color: "var(--color-font-primary)",
-};

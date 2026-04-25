@@ -1,28 +1,37 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { SquareArrowOutUpRight } from "lucide-react";
 import type { ProgramData, Session } from "@/types/session";
 import { colorFor } from "@/utils/eventColors";
+import SessionDrawer from "@/component/UI/SessionDrawer";
 
-const SLOT_HEIGHT = 60; // px pro Stunde
+const SLOT_HEIGHT = 60;
+const HEADER_HEIGHT = 36;
+const TIME_COL_WIDTH = 56;
+const ROOM_MIN_WIDTH = 160;
+const SCROLL_MAX_HEIGHT = 640;
 
 type Props = {
   program: ProgramData;
-  locale: string;
-  themeColor?: string | null; // Directus primary_color des Events
-  themeBackground?: string | null; // abgeleiteter Tint
+  eventId: string;
+  themeColor?: string | null;
+  themeBackground?: string | null;
 };
 
 export default function ProgramCalendar({
   program,
-  locale,
+  eventId,
   themeColor = null,
   themeBackground = null,
 }: Props) {
   const t = useTranslations("EventDetail");
+  const tSD = useTranslations("SessionDetail");
+  const locale = useLocale();
   const [activeDayIdx, setActiveDayIdx] = useState(0);
-  const [selected, setSelected] = useState<Session | null>(null);
+  const [drawerSessionId, setDrawerSessionId] = useState<string | null>(null);
 
   const hours = useMemo(() => {
     const arr: number[] = [];
@@ -32,21 +41,13 @@ export default function ProgramCalendar({
 
   if (program.days.length === 0) {
     return (
-      <div
-        style={{
-          padding: "48px 16px",
-          textAlign: "center",
-          color: "var(--color-text-secondary, #666)",
-          fontSize: 14,
-        }}
-      >
+      <div className="py-12 text-center text-sm text-[var(--color-text-secondary,#666)]">
         {t("noSessions")}
       </div>
     );
   }
 
   const day = program.days[activeDayIdx];
-
   const activeRooms = program.rooms.filter((r) =>
     day.sessions.some((s) => s.room === r),
   );
@@ -57,11 +58,13 @@ export default function ProgramCalendar({
   ];
 
   function fmtTime(iso: string) {
-    const d = new Date(iso);
-    return d.toLocaleTimeString(locale === "de" ? "de-DE" : "en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return new Date(iso).toLocaleTimeString(
+      locale === "de" ? "de-DE" : "en-US",
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+    );
   }
 
   function fmtDayLabel(dateKey: string, idx: number) {
@@ -92,134 +95,68 @@ export default function ProgramCalendar({
 
   const gridHeight = (program.maxHour - program.minHour) * SLOT_HEIGHT;
 
-  const HEADER_HEIGHT = 36;
-  const TIME_COL_WIDTH = 56;
-
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <div className="flex flex-col w-full min-w-0">
       {/* Tages-Tabs */}
-      <div
-        style={{
-          display: "flex",
-          borderBottom: "1px solid var(--color-border-tertiary, #e5e5e5)",
-          marginBottom: 16,
-          overflowX: "auto",
-        }}
-      >
-        {program.days.map((d, i) => (
-          <button
-            key={d.date}
-            onClick={() => setActiveDayIdx(i)}
-            style={{
-              padding: "8px 16px",
-              fontSize: 13,
-              whiteSpace: "nowrap",
-              borderBottom: "2px solid",
-              borderBottomColor:
-                i === activeDayIdx
-                  ? "var(--color-font-primary)"
-                  : "transparent",
-              marginBottom: -1,
-              color:
-                i === activeDayIdx
-                  ? "var(--color-font-primary)"
-                  : "var(--color-text-secondary, #666)",
-              fontWeight: i === activeDayIdx ? 500 : 400,
-              background: "transparent",
-              border: "none",
-              borderBottomWidth: 2,
-              borderBottomStyle: "solid",
-              cursor: "pointer",
-            }}
-          >
-            {fmtDayLabel(d.date, i)}
-          </button>
-        ))}
+      <div className="flex border-b border-[var(--color-border-tertiary,#e5e5e5)] mb-4 overflow-x-auto">
+        {program.days.map((d, i) => {
+          const active = i === activeDayIdx;
+          return (
+            <button
+              key={d.date}
+              onClick={() => setActiveDayIdx(i)}
+              className={`px-4 py-2 text-sm whitespace-nowrap border-b-2 -mb-px transition cursor-pointer ${
+                active
+                  ? "border-[var(--color-font-primary)] font-medium text-[var(--color-font-primary)]"
+                  : "border-transparent text-[var(--color-text-secondary,#666)] hover:text-[var(--color-font-primary)]"
+              }`}
+            >
+              {fmtDayLabel(d.date, i)}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Kalender-Grid */}
-      <div
-        style={{
-          border: "1px solid var(--color-border-tertiary, #e5e5e5)",
-          borderRadius: 8,
-          overflow: "hidden",
-          backgroundColor: "var(--color-box-background)",
-        }}
-      >
-        {columns.length === 0 ? (
+      {columns.length === 0 ? (
+        <div className="border border-[var(--color-border-tertiary,#e5e5e5)] rounded-lg py-12 text-center text-sm text-[var(--color-text-secondary,#666)] bg-[var(--color-box-background)]">
+          {t("noSessions")}
+        </div>
+      ) : (
+        <div
+          className="border border-[var(--color-border-tertiary,#e5e5e5)] rounded-lg overflow-auto bg-[var(--color-box-background)] relative"
+          style={{ maxHeight: SCROLL_MAX_HEIGHT }}
+        >
           <div
+            className="grid"
             style={{
-              padding: 48,
-              textAlign: "center",
-              color: "var(--color-text-secondary, #666)",
-              fontSize: 14,
+              gridTemplateColumns: `${TIME_COL_WIDTH}px repeat(${columns.length}, minmax(${ROOM_MIN_WIDTH}px, 1fr))`,
+              gridTemplateRows: `${HEADER_HEIGHT}px ${gridHeight}px`,
+              minWidth: "min-content",
             }}
           >
-            {t("noSessions")}
-          </div>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `${TIME_COL_WIDTH}px repeat(${columns.length}, minmax(140px, 1fr))`,
-            }}
-          >
-            {/* Ecke oben links */}
-            <div
-              style={{
-                height: HEADER_HEIGHT,
-                borderBottom: "1px solid var(--color-border-tertiary, #e5e5e5)",
-                borderRight: "1px solid var(--color-border-tertiary, #e5e5e5)",
-                backgroundColor: "var(--color-background-secondary, #fafafa)",
-              }}
-            />
+            <div className="sticky top-0 left-0 z-30 border-b border-r border-[var(--color-border-tertiary,#e5e5e5)] bg-[var(--color-background-secondary,#fafafa)]" />
 
-            {/* Raum-Header */}
             {columns.map((room, i) => (
               <div
-                key={room}
-                style={{
-                  height: HEADER_HEIGHT,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0 8px",
-                  fontSize: 12,
-                  fontWeight: 500,
-                  borderBottom:
-                    "1px solid var(--color-border-tertiary, #e5e5e5)",
-                  borderRight:
-                    i < columns.length - 1
-                      ? "1px solid var(--color-border-tertiary, #e5e5e5)"
-                      : "none",
-                  backgroundColor: "var(--color-background-secondary, #fafafa)",
-                  color: "var(--color-font-primary)",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
+                key={`head-${room}`}
+                className={`sticky top-0 z-20 flex items-center justify-center px-2 text-xs font-medium border-b border-[var(--color-border-tertiary,#e5e5e5)] bg-[var(--color-background-secondary,#fafafa)] text-[var(--color-font-primary)] truncate ${
+                  i < columns.length - 1 ? "border-r" : ""
+                }`}
               >
                 {room === "__unassigned__" ? t("noRoom") : room}
               </div>
             ))}
 
-            {/* Zeit-Spalte */}
             <div
-              style={{
-                position: "relative",
-                height: gridHeight,
-                borderRight: "1px solid var(--color-border-tertiary, #e5e5e5)",
-              }}
+              className="sticky left-0 z-10 border-r border-[var(--color-border-tertiary,#e5e5e5)] bg-[var(--color-box-background)]"
+              style={{ gridRow: 2, gridColumn: 1, height: gridHeight }}
             >
               {hours.map((h, i) => (
                 <div
                   key={h}
+                  className="absolute right-2 text-[11px] text-[var(--color-text-tertiary,#888)] whitespace-nowrap"
                   style={{
-                    position: "absolute",
                     top: i * SLOT_HEIGHT,
-                    right: 8,
-                    fontSize: 11,
-                    color: "var(--color-text-tertiary, #888)",
                     transform: i === 0 ? "translateY(0)" : "translateY(-50%)",
                   }}
                 >
@@ -228,7 +165,6 @@ export default function ProgramCalendar({
               ))}
             </div>
 
-            {/* Raum-Spalten */}
             {columns.map((room, colIdx) => {
               const roomSessions = day.sessions.filter((s) =>
                 room === "__unassigned__" ? !s.room : s.room === room,
@@ -236,200 +172,83 @@ export default function ProgramCalendar({
 
               return (
                 <div
-                  key={room}
+                  key={`col-${room}`}
+                  className={`relative ${
+                    colIdx < columns.length - 1
+                      ? "border-r border-[var(--color-border-tertiary,#e5e5e5)]"
+                      : ""
+                  }`}
                   style={{
-                    position: "relative",
+                    gridRow: 2,
+                    gridColumn: colIdx + 2,
                     height: gridHeight,
-                    borderRight:
-                      colIdx < columns.length - 1
-                        ? "1px solid var(--color-border-tertiary, #e5e5e5)"
-                        : "none",
                   }}
                 >
-                  {/* Horizontale Gitterlinien */}
                   {hours.map((_, i) => (
                     <div
                       key={i}
-                      style={{
-                        position: "absolute",
-                        top: i * SLOT_HEIGHT,
-                        left: 0,
-                        right: 0,
-                        borderTop:
-                          "1px solid var(--color-border-tertiary, #eee)",
-                        opacity: 0.6,
-                      }}
+                      className="absolute inset-x-0 border-t border-[var(--color-border-tertiary,#eee)] opacity-60 pointer-events-none"
+                      style={{ top: i * SLOT_HEIGHT }}
                     />
                   ))}
 
-                  {/* Sessions */}
                   {roomSessions.map((session) => {
                     const pos = positionFor(session);
                     const roomIdx = program.rooms.indexOf(session.room ?? "");
                     const fallback = colorFor(roomIdx >= 0 ? roomIdx : 8);
-                    // Priorität: Directus-Theme > Raum-Farbe aus Palette
                     const primary = themeColor ?? fallback.fg;
                     const background = themeBackground ?? fallback.bg;
 
                     return (
-                      <button
+                      <div
                         key={session.id}
-                        onClick={() => setSelected(session)}
-                        style={{
-                          position: "absolute",
-                          top: pos.top,
-                          left: 4,
-                          right: 4,
-                          height: pos.height,
-                          textAlign: "left",
-                          padding: "6px 8px",
-                          borderRadius: 4,
-                          overflow: "hidden",
-                          backgroundColor: background,
-                          color: primary,
-                          borderLeft: `3px solid ${primary}`,
-                          border: "none",
-                          borderLeftWidth: 3,
-                          borderLeftStyle: "solid",
-                          borderLeftColor: primary,
-                          cursor: "pointer",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 2,
-                        }}
+                        className="absolute left-1 right-1 group"
+                        style={{ top: pos.top, height: pos.height }}
                       >
-                        <div
+                        <button
+                          onClick={() => setDrawerSessionId(session.id)}
+                          className="w-full h-full text-left p-1.5 rounded overflow-hidden cursor-pointer flex flex-col gap-0.5 hover:opacity-80 transition"
                           style={{
-                            fontSize: 12,
-                            fontWeight: 500,
-                            lineHeight: 1.3,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            width: "100%",
+                            backgroundColor: background,
+                            color: primary,
+                            borderLeft: `3px solid ${primary}`,
                           }}
                         >
-                          {session.title || t("untitled")}
-                        </div>
-                        {pos.height > 36 && (
-                          <div style={{ fontSize: 10, opacity: 0.75 }}>
-                            {fmtTime(session.startTime)} –{" "}
-                            {fmtTime(session.endTime)}
+                          <div className="text-xs font-medium leading-tight truncate w-full pr-5">
+                            {session.title || t("untitled")}
                           </div>
-                        )}
-                      </button>
+                          {pos.height > 36 && (
+                            <div className="text-[10px] opacity-75">
+                              {fmtTime(session.startTime)} –{" "}
+                              {fmtTime(session.endTime)}
+                            </div>
+                          )}
+                        </button>
+                        <Link
+                          href={`/${locale}/events/${eventId}/sessions/${session.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute top-1 right-1 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-black/10 transition"
+                          style={{ color: primary }}
+                          title={tSD("openFullPage")}
+                          aria-label={tSD("openFullPage")}
+                        >
+                          <SquareArrowOutUpRight size={12} />
+                        </Link>
+                      </div>
                     );
                   })}
                 </div>
               );
             })}
           </div>
-        )}
-      </div>
-
-      {/* Session-Detail Modal */}
-      {selected && (
-        <SessionModal
-          session={selected}
-          onClose={() => setSelected(null)}
-          locale={locale}
-        />
+        </div>
       )}
-    </div>
-  );
-}
 
-function SessionModal({
-  session,
-  onClose,
-  locale,
-}: {
-  session: Session;
-  onClose: () => void;
-  locale: string;
-}) {
-  const t = useTranslations("EventDetail");
-  function fmt(iso: string) {
-    return new Date(iso).toLocaleString(locale === "de" ? "de-DE" : "en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-  }
-
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0,0,0,0.4)",
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          backgroundColor: "var(--color-box-background)",
-          borderRadius: 8,
-          boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
-          maxWidth: 480,
-          width: "100%",
-          padding: 24,
-          color: "var(--color-font-primary)",
-        }}
-      >
-        <h3 style={{ fontSize: 18, fontWeight: 500, marginBottom: 12 }}>
-          {session.title || t("untitled")}
-        </h3>
-        <dl
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            fontSize: 14,
-          }}
-        >
-          <Row label={t("start")} value={fmt(session.startTime)} />
-          <Row label={t("end")} value={fmt(session.endTime)} />
-          {session.room && <Row label={t("room")} value={session.room} />}
-        </dl>
-        <button
-          onClick={onClose}
-          style={{
-            marginTop: 16,
-            padding: "6px 16px",
-            fontSize: 13,
-            border: "1px solid var(--color-border-tertiary, #e5e5e5)",
-            borderRadius: 6,
-            background: "transparent",
-            color: "var(--color-font-primary)",
-            cursor: "pointer",
-          }}
-        >
-          {t("close")}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ display: "flex", gap: 12 }}>
-      <dt
-        style={{
-          width: 80,
-          color: "var(--color-text-secondary, #666)",
-          flexShrink: 0,
-        }}
-      >
-        {label}
-      </dt>
-      <dd style={{ margin: 0 }}>{value}</dd>
+      <SessionDrawer
+        sessionId={drawerSessionId}
+        eventId={eventId}
+        onClose={() => setDrawerSessionId(null)}
+      />
     </div>
   );
 }

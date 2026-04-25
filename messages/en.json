@@ -191,7 +191,11 @@
     "start": "Start",
     "end": "End",
     "room": "Room",
-    "close": "Close"
+    "close": "Close",
+    "tabGeneral": "General",
+    "tabDossier": "Speaker dossier",
+    "tabMetrics": "Metrics",
+    "tabsAriaLabel": "Event sections"
   },
   "EventsOverview": {
     "title": "Events",
@@ -219,7 +223,19 @@
     "viewMonth": "Month",
     "viewYear": "Year",
     "today": "Today",
-    "timeline": "Timeline"
+    "timeline": "Timeline",
+    "monthSingular": "month",
+    "monthPlural": "months"
+  },
+  "SessionDetail": {
+    "untitled": "(untitled)",
+    "backToEvent": "Back to event",
+    "description": "Description",
+    "speakers": "Speakers",
+    "minutesShort": "min",
+    "close": "Close",
+    "openFullPage": "Open in full page",
+    "loadError": "Failed to load"
   },
   "Charts": {
     "gender": {

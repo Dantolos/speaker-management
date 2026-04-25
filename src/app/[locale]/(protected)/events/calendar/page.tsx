@@ -13,7 +13,7 @@ export default async function EventsCalendarPage({
   const events = await getCalendarEvents();
 
   return (
-    <div className="p-6">
+    <div className="p-6 w-full min-w-0">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-medium">{t("calendarTitle")}</h1>

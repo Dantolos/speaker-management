@@ -24,7 +24,7 @@ export default function CalendarView({
   });
 
   return (
-    <div>
+    <div className="w-full min-w-0">
       <div className="flex items-center justify-between mb-4">
         <div className="inline-flex rounded-lg border border-[var(--color-border-tertiary,#e5e5e5)] p-0.5 text-sm">
           <button

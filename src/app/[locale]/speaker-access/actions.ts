@@ -1,23 +1,27 @@
 "use server";
-
 import { redirect } from "next/navigation";
 import { getSpeakerSession } from "@/utils/auth";
 import { directus } from "@/services/directus";
 import { readItems } from "@directus/sdk";
 
 export async function authSpeaker(formData: FormData) {
-  const password = formData.get("password") as string;
+  const password = (formData.get("password") as string)?.trim();
   const redirectPath = (formData.get("redirect") as string) || "/";
 
-  // Event-Name aus dem redirect-Pfad extrahieren (speaker/[id])
-  // Passwort gegen alle Events prüfen
+  if (!password) {
+    redirect(
+      `/speaker-access?error=1&redirect=${encodeURIComponent(redirectPath)}`,
+    );
+  }
+
   const events = await directus.request(
     readItems("events", {
-      fields: ["id", "event_name", "access_password"],
+      filter: { access_password: { _eq: password } },
+      fields: ["id"],
+      limit: 1,
     }),
   );
-
-  const matchingEvent = events.find((e) => e.access_password === password);
+  const matchingEvent = events[0];
 
   if (matchingEvent) {
     const session = await getSpeakerSession();

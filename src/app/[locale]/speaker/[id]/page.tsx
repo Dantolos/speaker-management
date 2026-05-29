@@ -61,6 +61,7 @@ function toDate(value: string | undefined, fallback = new Date()): Date {
 
 export default async function SpeakerPage({ params }: Props) {
   const { locale, id } = await params;
+
   // ── Auth ──────────────────────────────────────────────────────────────────
   const [session, speakerSession] = await Promise.all([
     getInternalSession(),
@@ -70,23 +71,6 @@ export default async function SpeakerPage({ params }: Props) {
     redirect(`/speaker-access?redirect=/speaker/${id}`);
   }
 
-  // ── Event-Zugang prüfen (nur für Speaker Session) ─────────────────────────
-  if (!session.isAuthenticated && speakerSession.isAuthenticated) {
-    const [data] = await Promise.all([getSpeaker(id)]);
-    if (!data) notFound();
-
-    const events = await directus.request(
-      readItems("events", {
-        filter: { event_name: { _eq: data.Event?.Name } },
-        fields: ["id"],
-      }),
-    );
-
-    if (speakerSession.eventId !== events[0]?.id) {
-      redirect(`/speaker-access?redirect=/speaker/${id}`);
-    }
-  }
-
   // ── Data ──────────────────────────────────────────────────────────────────
   const [data, t, tg, format] = await Promise.all([
     getSpeaker(id),
@@ -94,25 +78,41 @@ export default async function SpeakerPage({ params }: Props) {
     getTranslations({ locale, namespace: "General" }),
     getFormatter({ locale }),
   ]);
-
   if (!data) notFound();
-  console.log(data);
-  const ProgramData = await programDataMapping(data);
 
-  // ---- get settings -------------------------------------------------------
-  const eventSettings = await directus.request(
+  // ── Directus-Event EINMAL auflösen – über airtable_id, nicht über den Namen ─
+  const directusEvents = await directus.request(
     readItems("events", {
-      filter: { event_name: { _eq: data.Event?.Name } },
+      filter: { airtable_id: { _eq: data.Event?.id } },
       fields: ["*", { theme: ["*"] }],
     }),
   );
+  const eventSettings = directusEvents[0];
 
-  const theme = eventSettings[0]?.theme;
+  console.log("ACCESS CHECK", {
+    sessionEventId: speakerSession.eventId,
+    airtableEventId: data.Event?.id,
+    directusMatches: directusEvents.map((e) => ({
+      id: e.id,
+      airtable_id: e.airtable_id,
+    })),
+  });
+
+  // ── Event-Zugang prüfen (nur für Speaker Session) ──────────────────────────
+  if (!session.isAuthenticated && speakerSession.isAuthenticated) {
+    if (!eventSettings || speakerSession.eventId !== eventSettings.id) {
+      redirect(`/speaker-access?redirect=/speaker/${id}`);
+    }
+  }
+
+  const ProgramData = await programDataMapping(data);
+
+  // ---- settings ------------------------------------------------------------
+  const theme = eventSettings?.theme;
 
   const contentDisplay =
-    eventSettings[0]?.content_display &&
-    eventSettings[0]?.content_display?.length > 0
-      ? eventSettings[0]?.content_display
+    eventSettings?.content_display && eventSettings.content_display.length > 0
+      ? eventSettings.content_display
       : false;
 
   // ── Derived values ────────────────────────────────────────────────────────

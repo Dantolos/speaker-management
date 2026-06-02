@@ -444,18 +444,25 @@ export default async function SpeakerPage({ params }: Props) {
                         " " +
                         data.Event?.Plattformen?.initiator_city || "3008 Bern"}
                     </p>
-                    <Link href="mailto:hello@andermatt-dialog.ch">
+                    <Link
+                      href={
+                        data.Event?.Plattformen?.platform_email ||
+                        "hello@livelearninglabs.ch"
+                      }
+                    >
                       {data.Event?.Plattformen?.platform_email ||
                         "hello@livelearninglabs.ch"}
                     </Link>
                   </div>
                   <div className="w-[300px]">
                     <p className="font-bold">{t("contact-person")}</p>
-                    <p>Senior Project Manager</p>
-                    <p>Alexandra Leemann</p>
-                    <p>Tel: +49 172 133 76 50</p>
-                    <Link href="mailto:ruth.inniger@lucerne-dialogue.ch">
-                      ale@livelearninglabs.ch
+                    <p>{data.Event?.reponsible_contact_position}</p>
+                    <p>{data.Event?.reponsible_contact_name}</p>
+                    <p>{data.Event?.reponsible_contact_phone}</p>
+                    <Link
+                      href={`mailto:${data.Event?.reponsible_contact_email}`}
+                    >
+                      {data.Event?.reponsible_contact_email}
                     </Link>
                   </div>
                 </div>
